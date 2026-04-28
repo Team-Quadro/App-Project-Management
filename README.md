@@ -1,15 +1,16 @@
-# ProjectHub (Submission for JavaS Challenge)
+# Task Management System
 
-ProjectHub adalah aplikasi web manajemen proyek dan tugas internal berbasis Laravel, dilengkapi dengan kontrol akses berbasis peran (Role-Based Access Control). Dibangun menggunakan Blade templating, Tailwind CSS, dan Alpine.js.
+Sistem manajemen proyek dan tugas internal berbasis web, dirancang untuk memudahkan koordinasi tim dengan dilengkapi kontrol akses berbasis peran (Role-Based Access Control). Aplikasi ini dibangun di atas ekosistem **Laravel** dan **Livewire**, serta memanfaatkan **Tailwind CSS v4** untuk antarmuka yang reaktif dan modern.
 
+---
 
 ## Prerequisites
 
-Sebelum melakukan instalasi, pastikan sudah install :
+Sebelum melakukan instalasi, pastikan lingkungan pengembangan Anda sudah memenuhi persyaratan berikut:
 
-- PHP versi 8.2 atau lebih
+- PHP **8.2** atau lebih baru
 - Composer
-- Node.js versi 18 atau lebih baru
+- Bun **v1.2.22** (sebagai package manager dan bundler)
 
 ---
 
@@ -18,234 +19,151 @@ Sebelum melakukan instalasi, pastikan sudah install :
 ### Langkah 1: Clone Repository
 
 ```bash
-git clone https://github.com/MastayY/projecthub.git
-cd challenge-javas
+git clone https://github.com/Team-Quadro/App-Project-Management.git
+cd App-Project-Management
 ```
 
-### Langkah 2: Instal Dependensi PHP
+### Langkah 2: Instal Dependensi Backend (PHP)
 
 ```bash
 composer install
 ```
 
-### Langkah 3: Instal Dependensi JavaScript
+### Langkah 3: Instal Dependensi Frontend
 
 ```bash
-npm install
+bun install
 ```
 
 ### Langkah 4: Konfigurasi Environment
-
-Salin file `.env.example` menjadi `.env`, lalu generate application key:
 
 ```bash
 cp .env.example .env
 php artisan key:generate
 ```
 
-### Langkah 5: Siapkan Database
+> **Catatan:** Sesuaikan konfigurasi koneksi database di file `.env` Anda sebelum melanjutkan.
 
-Jalankan migrasi dan seeding untuk membuat tabel dan mengisi data dummy:
+### Langkah 5: Siapkan Database
 
 ```bash
 php artisan migrate --seed
 ```
 
-### Langkah 6: Jalankan Server
+### Langkah 6: Jalankan Server Lokal
 
 ```bash
-composer run dev
+# Buka dua terminal terpisah
+
+# Terminal 1 — Backend
+php artisan serve
+
+# Terminal 2 — Frontend Build
+bun run dev
 ```
 
-Buka `http://localhost:8000` di browser.
+Buka [http://localhost:8000](http://localhost:8000) di browser Anda.
 
-## Akun Bawaan
+---
 
-Setelah run seeder, ada akun-akun berikut untuk testing:
+## Akun Bawaan (Testing Environment)
 
-| Role   | Email                | Password |
-|---------|----------------------|------------|
-| Admin   | admin@example.com    | admin123   |
-| Member  | jokogemink@example.com    | user123    |
-| Member  | prabogemink@example.com      | user123    |
-| Member  | gibrun@example.com  | user123    |
+Setelah menjalankan seeder, akun-akun berikut tersedia untuk testing:
 
-Akun dengan peran Admin memiliki akses penuh ke seluruh proyek dan tugas. Akun dengan peran Member hanya dapat mengakses proyek yang dimiliki atau yang menjadi anggotanya.
+| Role   | Email                     | Password |
+|--------|---------------------------|----------|
+| Admin  | admin@example.com         | admin123 |
+| Member | jokogemink@example.com    | user123  |
+| Member | prabogemink@example.com   | user123  |
+| Member | gibrun@example.com        | user123  |
+
+> **Catatan Otorisasi:**  
+> - **Admin** — Akses penuh ke seluruh proyek dan tugas.  
+> - **Member** — Hanya dapat mengelola proyek yang dimiliki atau proyek di mana mereka ditugaskan sebagai anggota.
 
 ---
 
 ## Fitur Utama
 
-### Autentikasi
-
-- Registrasi akun baru
-- Login dan logout
-- Manajemen profil (ubah nama, email, password, dan hapus akun)
+### Autentikasi & Keamanan
+- Registrasi akun pengguna baru
+- Sistem Login dan Logout yang aman
+- Manajemen profil (nama, email, password, penghapusan akun)
 
 ### RBAC (Role-Based Access Control)
+- **Admin** — Akses absolut tanpa batasan visibilitas
+- **Member** — Akses terisolasi, hanya pada proyek yang relevan
 
-Ada dua role User:
-
-- **Admin** -- Punya akses penuh ke seluruh proyek dan tugas di sistem tanpa batasan.
-- **Member** -- Hanya dapat melihat dan mengelola proyek yang dimiliki atau yang menjadi anggotanya.
-
-### Dashboard
-
-Halaman dashboard menampilkan ringkasan workspace:
-
-- Jumlah total proyek dan proyek aktif
-- Jumlah total tugas dan tugas terbuka milik User
-- Breakdown status tugas (To Do, In Progress, Done) dengan progress bar
-- Daftar proyek terbaru
-- Daftar tugas dengan deadline terdekat
+### Interactive Dashboard
+- Total proyek & rasio proyek aktif
+- Total tugas & rincian tugas terbuka milik pengguna
+- Visualisasi progress bar breakdown status tugas (To Do, In Progress, Done)
+- Umpan aktivitas proyek terbaru
+- Sorotan tugas dengan deadline terdekat
 
 ### Manajemen Proyek (CRUD)
-
-- Membuat proyek baru dengan judul, deskripsi, status, deadline, dan anggota tim
-- Melihat daftar proyek dengan fitur pencarian dan filter status
-- Melihat detail proyek beserta daftar tugas terkait
-- Mengedit informasi proyek
-- Menghapus proyek (beserta seluruh tugasnya)
-- Mengelola anggota tim proyek melalui checkbox
+- Buat proyek dengan judul, deskripsi, status, deadline, dan alokasi tim
+- Daftar proyek dengan fitur pencarian & filter status
+- Detail proyek beserta hierarki tugas terkait
+- Edit informasi proyek & manajemen anggota tim
+- Hapus proyek (cascade ke tugas terkait)
 
 ### Manajemen Tugas (CRUD)
+- Delegasi tugas di dalam ruang lingkup proyek
+- Atribut lengkap: judul, deskripsi, status, prioritas, assignee, deadline
+- Update status inline (To Do → In Progress → Done)
+- Filter berlapis: status, prioritas, dan teks
+- Edit & hapus tugas
 
-- Membuat tugas baru dalam konteks proyek tertentu
-- Setiap tugas memiliki atribut: judul, deskripsi, status, prioritas, assignee, dan deadline
-- Mengubah status tugas secara inline (klik tombol lingkaran pada daftar tugas)
-- Siklus status: To Do -> In Progress -> Done -> To Do
-- Mengedit dan menghapus tugas
-- Filter tugas berdasarkan status, prioritas, dan pencarian teks
-
-### Pencarian dan Filter
-
-- Pencarian proyek berdasarkan judul dan deskripsi
-- Filter proyek berdasarkan status (active, completed, archived)
-- Pencarian tugas dalam halaman detail proyek
-- Filter tugas berdasarkan status (todo, in_progress, done)
-- Filter tugas berdasarkan prioritas (low, medium, high)
-
-### Paginasi
-
-Daftar proyek dan tugas menggunakan paginasi dengan 10 item per halaman. Parameter filter dipertahankan saat berpindah halaman.
+### Pencarian & Paginasi
+- Pencarian responsif untuk proyek dan tugas
+- Filter ganda (status aktif/arsip, skala prioritas)
+- Paginasi 10 item per halaman dengan retensi parameter pencarian
 
 ---
 
 ## Arsitektur Aplikasi
 
-Aplikasi ini menggunakan arsitektur berlapis (layered architecture) untuk memisahkan tanggung jawab:
+Aplikasi mengadopsi **layered architecture** untuk pemisahan tanggung jawab yang bersih:
 
-### Controller Layer
-
-Controller bertanggung jawab untuk menerima HTTP request, mendelegasikan proses bisnis ke Service layer, dan mengembalikan response (view).
-
-- `DashboardController` -- Menampilkan halaman dashboard dengan statistik
-- `ProjectController` -- Menangani operasi CRUD untuk proyek
-- `TaskController` -- Menangani operasi CRUD untuk tugas (nested resource di bawah proyek)
-
-### Service Layer
-
-Service layer berisi logika bisnis utama, terpisah dari controller:
-
-- `DashboardService` -- Mengambil dan menghitung data ringkasan untuk dashboard
-- `ProjectService` -- Menangani logika bisnis pembuatan, pembaruan, penghapusan proyek, dan sinkronisasi anggota tim
-- `TaskService` -- Menangani logika bisnis pembuatan, pembaruan, penghapusan tugas, dan perubahan status inline
-
-### Policy Layer
-
-Policy mengatur otorisasi akses pada level model:
-
-- `ProjectPolicy` -- Mengatur siapa yang boleh melihat, membuat, mengedit, dan menghapus proyek
-- `TaskPolicy` -- Mengatur siapa yang boleh membuat, mengedit, dan menghapus tugas
-
-### Form Request Layer
-
-Form Request digunakan untuk validasi data input secara terpisah dari controller:
-
-- `StoreProjectRequest` / `UpdateProjectRequest` -- Validasi data proyek
-- `StoreTaskRequest` / `UpdateTaskRequest` -- Validasi data tugas
+| Layer | Deskripsi |
+|-------|-----------|
+| **Controller / Component** | Mencegat HTTP request, mendelegasikan ke Service layer, menyajikan response |
+| **Service** | Enkapsulasi logika bisnis (Dashboard, Project, Task) |
+| **Policy** | Otorisasi pada level model (ProjectPolicy, TaskPolicy) |
+| **Form Request** | Isolasi validasi input dari logika eksekusi |
 
 ---
 
 ## Skema Database
 
-### Tabel users
-
-| Kolom              | Tipe      | Keterangan                              |
-|--------------------|-----------|-----------------------------------------|
-| id                 | bigint    | Primary key, auto increment             |
-| name               | string    | Nama lengkap User                   |
-| email              | string    | Alamat email (unik)                     |
-| role               | string    | Peran User: "admin" atau "member"   |
-| email_verified_at  | timestamp | Waktu verifikasi email (nullable)       |
-| password           | string    | Kata sandi (hashed)                     |
-| remember_token     | string    | Token "Remember Me" (nullable)          |
-| created_at         | timestamp | Waktu pembuatan                         |
-| updated_at         | timestamp | Waktu pembaruan terakhir                |
-
-### Tabel projects
-
-| Kolom       | Tipe      | Keterangan                                         |
-|-------------|-----------|-----------------------------------------------------|
-| id          | bigint    | Primary key, auto increment                         |
-| title       | string    | Judul proyek                                        |
-| description | text      | Deskripsi proyek (nullable)                         |
-| status      | string    | Status: "active", "completed", atau "archived"      |
-| owner_id    | bigint    | Foreign key ke tabel users (cascade on delete)      |
-| deadline    | date      | Tenggat waktu proyek (nullable)                     |
-| created_at  | timestamp | Waktu pembuatan                                     |
-| updated_at  | timestamp | Waktu pembaruan terakhir                            |
-
-### Tabel project_members (Pivot)
-
-| Kolom      | Tipe      | Keterangan                                        |
-|------------|-----------|---------------------------------------------------|
-| project_id | bigint    | Foreign key ke tabel projects (cascade on delete)  |
-| user_id    | bigint    | Foreign key ke tabel users (cascade on delete)     |
-| created_at | timestamp | Waktu penambahan anggota                           |
-| updated_at | timestamp | Waktu pembaruan terakhir                           |
-
-Primary key gabungan: (project_id, user_id)
-
-### Tabel tasks
-
-| Kolom       | Tipe      | Keterangan                                          |
-|-------------|-----------|------------------------------------------------------|
-| id          | bigint    | Primary key, auto increment                          |
-| project_id  | bigint    | Foreign key ke tabel projects (cascade on delete)    |
-| title       | string    | Judul tugas                                          |
-| description | text      | Deskripsi tugas (nullable)                           |
-| status      | string    | Status: "todo", "in_progress", atau "done"           |
-| priority    | string    | Prioritas: "low", "medium", atau "high"              |
-| assigned_to | bigint    | Foreign key ke tabel users (null on delete, nullable)|
-| deadline    | date      | Tenggat waktu tugas (nullable)                       |
-| created_at  | timestamp | Waktu pembuatan                                      |
-| updated_at  | timestamp | Waktu pembaruan terakhir                             |
+| Tabel | Kolom Utama |
+|-------|-------------|
+| `users` | `id`, `name`, `email`, `role`, `password`, `timestamps` |
+| `projects` | `id`, `title`, `description`, `status`, `owner_id`, `deadline`, `timestamps` |
+| `project_members` *(pivot)* | `project_id`, `user_id`, `timestamps` |
+| `tasks` | `id`, `project_id`, `title`, `description`, `status`, `priority`, `assigned_to`, `deadline`, `timestamps` |
 
 ---
 
-## Access Policy
+## Matriks Kebijakan Akses
 
-### ProjectPolicy
+### Project Policy
 
 | Aksi      | Admin | Owner Proyek | Anggota Proyek | User Lain |
-|-----------|-------|-------------|----------------|---------------|
-| viewAny   | Ya    | Ya          | Ya             | Ya            |
-| view      | Ya    | Ya          | Ya             | Tidak         |
-| create    | Ya    | Ya          | Ya             | Ya            |
-| update    | Ya    | Ya          | Ya             | Tidak         |
-| delete    | Ya    | Ya          | Tidak          | Tidak         |
+|-----------|:-----:|:------------:|:--------------:|:---------:|
+| viewAny   | ✅    | ✅           | ✅             | ✅        |
+| view      | ✅    | ✅           | ✅             | ❌        |
+| create    | ✅    | ✅           | ✅             | ✅        |
+| update    | ✅    | ✅           | ✅             | ❌        |
+| delete    | ✅    | ✅           | ❌             | ❌        |
 
-### TaskPolicy
+### Task Policy
 
-| Aksi      | Admin | Owner Proyek | Anggota Proyek | Assignee Tugas | User Lain |
-|-----------|-------|-------------|----------------|----------------|---------------|
-| create    | Ya    | Ya          | Ya             | -              | Tidak         |
-| update    | Ya    | Ya          | Ya             | -              | Tidak         |
-| delete    | Ya    | Ya          | Tidak          | Ya             | Tidak         |
+| Aksi   | Admin | Owner Proyek | Anggota Proyek | Assignee Tugas | User Lain |
+|--------|:-----:|:------------:|:--------------:|:--------------:|:---------:|
+| create | ✅    | ✅           | ✅             | —              | ❌        |
+| update | ✅    | ✅           | ✅             | —              | ❌        |
+| delete | ✅    | ✅           | ❌             | ✅             | ❌        |
 
-Keterangan:
-- "Owner Proyek" adalah User yang membuat proyek tersebut.
-- "Anggota Proyek" adalah User yang ditambahkan sebagai anggota tim proyek.
-- "Assignee Tugas" adalah User yang diassign di tugas tertentu.
----
+> **Keterangan:** Otoritas Admin melampaui batasan kepemilikan. Owner adalah kreator awal proyek. Anggota adalah tim yang diundang. Assignee adalah pelaksana spesifik sebuah tugas.
