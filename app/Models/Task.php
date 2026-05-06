@@ -2,17 +2,22 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo as TaskBelongsTo;
+use App\Models\WorkflowStage;
 
 class Task extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToTenant;
 
     protected $fillable = [
+        'tenant_id',
         'project_id',
+        'stage_id',
         'title',
         'description',
         'status',
@@ -59,6 +64,16 @@ class Task extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
+    public function stage(): TaskBelongsTo
+    {
+        return $this->belongsTo(WorkflowStage::class, 'stage_id');
     }
 
     public function assignee(): BelongsTo

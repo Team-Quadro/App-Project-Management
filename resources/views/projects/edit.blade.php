@@ -46,24 +46,25 @@
                     </div>
                 </div>
 
-                @php $currentMembers = $project->members->pluck('id')->toArray(); @endphp
-                <div class="mb-5">
-                    <label class="v-label">Team Members</label>
-                    <div class="border border-border rounded-[4px] p-3 max-h-44 overflow-y-auto space-y-1">
-                        @foreach ($users as $user)
-                        <label class="flex items-center gap-2 px-2 py-1.5 rounded-[3px] hover:bg-gray-50 transition-colors duration-100 cursor-pointer">
-                            <input type="checkbox" name="members[]" value="{{ $user->id }}" {{ in_array($user->id, old('members', $currentMembers)) ? 'checked' : '' }}
-                            class="rounded-[3px] border-border text-brand-600 focus:ring-brand-500/20" />
-                            <div class="flex items-center gap-2 min-w-0">
-                                <div class="w-5 h-5 rounded-full bg-brand-100 text-brand-600 text-[9px] font-medium flex items-center justify-center shrink-0">
-                                    {{ strtoupper(substr($user->name, 0, 1)) }}
-                                </div>
-                                <span class="text-[13px] text-gray-900 truncate">{{ $user->name }}</span>
-                                <span class="text-[11px] text-gray-400 truncate">{{ $user->email }}</span>
-                            </div>
-                        </label>
-                        @endforeach
+                @php $currentEmails = $project->members->pluck('email')->toArray(); @endphp
+                <div class="mb-5" x-data="emailPicker({ initial: @json(old('member_emails', $currentEmails)) })">
+                    <label class="v-label">Team Members (Email)</label>
+                    <div class="border border-border rounded-sm p-3">
+                        <div class="flex flex-wrap gap-2 mb-2">
+                            <template x-for="(email, index) in emails" :key="email">
+                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 text-xs text-gray-700">
+                                    <span x-text="email"></span>
+                                    <button type="button" class="text-gray-400 hover:text-gray-600" @click="remove(index)">×</button>
+                                </span>
+                            </template>
+                        </div>
+                           <input type="text" x-model="input" @keydown.enter.prevent="add()" @keydown.comma.prevent="add()" @blur="add()"
+                               class="v-input" placeholder="Type email and press Enter" />
+                        <template x-for="email in emails" :key="email">
+                            <input type="hidden" name="member_emails[]" :value="email" />
+                        </template>
                     </div>
+                    <x-input-error :messages="$errors->get('member_emails')" class="mt-1" />
                 </div>
 
                 <div class="flex items-center gap-2 pt-4 border-t border-border">
@@ -74,3 +75,23 @@
         </div>
     </div>
 </x-app-layout>
+
+<script>
+    function emailPicker({ initial }) {
+        return {
+            emails: Array.isArray(initial) ? initial : [],
+            input: '',
+            add() {
+                const value = this.input.trim().replace(/,$/, '').toLowerCase();
+                if (!value) return;
+                if (!this.emails.includes(value)) {
+                    this.emails.push(value);
+                }
+                this.input = '';
+            },
+            remove(index) {
+                this.emails.splice(index, 1);
+            }
+        };
+    }
+</script>

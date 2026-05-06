@@ -1,9 +1,9 @@
 <?php
 
 namespace App\Models;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -23,6 +23,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'tenant_id',
     ];
 
     /**
@@ -52,9 +53,32 @@ class User extends Authenticatable
      | Helpers
      | -------------------------------------------------------- */
 
+    public const ROLE_SUPERADMIN = 'superadmin';
+    public const ROLE_PIC = 'pic';
+    public const ROLE_MEMBER = 'member';
+
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return in_array($this->role, [self::ROLE_PIC, self::ROLE_SUPERADMIN], true);
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === self::ROLE_SUPERADMIN;
+    }
+
+    public function isCompanyAdmin(): bool
+    {
+        return $this->role === self::ROLE_PIC;
+    }
+
+    public function getRoleLabelAttribute(): string
+    {
+        return match ($this->role) {
+            self::ROLE_SUPERADMIN => 'Superadmin',
+            self::ROLE_PIC => 'PIC Company',
+            default => 'Member',
+        };
     }
 
     /* --------------------------------------------------------
@@ -69,12 +93,18 @@ class User extends Authenticatable
         return $this->hasMany(Project::class , 'owner_id');
     }
 
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
     /**
      * Projects this user is a member of.
      */
     public function memberProjects(): BelongsToMany
     {
         return $this->belongsToMany(Project::class , 'project_members')
+            ->withPivot('tenant_id')
             ->withTimestamps();
     }
 
