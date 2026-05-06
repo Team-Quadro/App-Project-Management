@@ -27,6 +27,25 @@ class AuthenticationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
+        $response->assertRedirect(route('onboarding.index', absolute: false));
+    }
+
+    public function test_users_with_tenant_redirect_to_dashboard(): void
+    {
+        $tenant = \App\Models\Tenant::factory()->create([
+            'status' => \App\Models\Tenant::STATUS_APPROVED,
+        ]);
+
+        $user = User::factory()->create([
+            'tenant_id' => $tenant->id,
+        ]);
+
+        $response = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertAuthenticated();
         $response->assertRedirect(route('dashboard', absolute: false));
     }
 

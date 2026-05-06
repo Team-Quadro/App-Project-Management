@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -14,11 +15,36 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $tenant = Tenant::create([
+            'company_name' => 'Demo Subsidiary',
+            'industry' => 'Technology',
+            'pic_name' => 'PIC Demo',
+            'pic_email' => 'pic@demo-subsidiary.test',
+            'pic_phone' => '+62-000-000-0000',
+            'pic_job_title' => 'Company Admin',
+            'estimated_users' => 25,
+            'status' => Tenant::STATUS_APPROVED,
+            'approved_at' => now(),
+        ]);
+
+        User::create([
+            'name' => 'Super Admin',
+            'email' => 'superadmin@example.com',
+            'password' => bcrypt('superadmin123'),
+            'role' => 'superadmin',
+        ]);
+
         $admin = User::create([
             'name' => 'Administrator',
             'email' => 'admin@example.com',
             'password' => bcrypt('admin123'),
-            'role' => 'admin',
+            'role' => \App\Models\User::ROLE_PIC,
+            'tenant_id' => $tenant->id,
+        ]);
+
+        $tenant->update([
+            'requested_by' => $admin->id,
+            'approved_by' => $admin->id,
         ]);
 
         $joko = User::create([
@@ -26,6 +52,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'jokogemink@example.com',
             'password' => bcrypt('user123'),
             'role' => 'member',
+            'tenant_id' => $tenant->id,
         ]);
 
         $prabo = User::create([
@@ -33,6 +60,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'prabogemink@example.com',
             'password' => bcrypt('user123'),
             'role' => 'member',
+            'tenant_id' => $tenant->id,
         ]);
 
         $gibrun = User::create([
@@ -40,45 +68,61 @@ class DatabaseSeeder extends Seeder
             'email' => 'gibrun@example.com',
             'password' => bcrypt('user123'),
             'role' => 'member',
+            'tenant_id' => $tenant->id,
         ]);
 
         $projectWebsite = Project::create([
+            'tenant_id' => $tenant->id,
             'title' => 'Company Website Redesign',
             'description' => 'Complete overhaul of the company website including new branding, responsive design, and improved UX.',
             'status' => 'active',
             'owner_id' => $admin->id,
             'deadline' => now()->addMonths(2),
         ]);
-        $projectWebsite->members()->attach([$joko->id, $prabo->id]);
+        $projectWebsite->members()->attach([
+            $joko->id => ['tenant_id' => $tenant->id],
+            $prabo->id => ['tenant_id' => $tenant->id],
+        ]);
 
         $projectMobile = Project::create([
+            'tenant_id' => $tenant->id,
             'title' => 'Mobile App Development',
             'description' => 'Build a cross-platform mobile application for customer self-service portal.',
             'status' => 'active',
             'owner_id' => $joko->id,
             'deadline' => now()->addMonths(3),
         ]);
-        $projectMobile->members()->attach([$prabo->id, $gibrun->id]);
+        $projectMobile->members()->attach([
+            $prabo->id => ['tenant_id' => $tenant->id],
+            $gibrun->id => ['tenant_id' => $tenant->id],
+        ]);
 
         $projectApi = Project::create([
+            'tenant_id' => $tenant->id,
             'title' => 'API Integration',
             'description' => 'Integrate third-party payment and logistics APIs into the existing system.',
             'status' => 'active',
             'owner_id' => $prabo->id,
             'deadline' => now()->addMonth(),
         ]);
-        $projectApi->members()->attach([$joko->id]);
+        $projectApi->members()->attach([
+            $joko->id => ['tenant_id' => $tenant->id],
+        ]);
 
         $projectLegacy = Project::create([
+            'tenant_id' => $tenant->id,
             'title' => 'Legacy System Migration',
             'description' => 'Migrate data and features from the old PHP system to the new Laravel platform.',
             'status' => 'completed',
             'owner_id' => $admin->id,
             'deadline' => now()->subWeek(),
         ]);
-        $projectLegacy->members()->attach([$gibrun->id]);
+        $projectLegacy->members()->attach([
+            $gibrun->id => ['tenant_id' => $tenant->id],
+        ]);
 
         $projectDocs = Project::create([
+            'tenant_id' => $tenant->id,
             'title' => 'Internal Documentation',
             'description' => 'Create and maintain internal technical documentation and developer guides.',
             'status' => 'archived',
@@ -118,8 +162,17 @@ class DatabaseSeeder extends Seeder
      */
     private function createTasks(Project $project, array $tasks): void
     {
+        $project->loadMissing('stages');
+
         foreach ($tasks as $data) {
-            Task::create(array_merge($data, ['project_id' => $project->id]));
+            $status = $data['status'] ?? Task::STATUS_TODO;
+            $stage = $project->stages->firstWhere('key', $status) ?? $project->stages->first();
+
+            Task::create(array_merge($data, [
+                'tenant_id' => $project->tenant_id,
+                'project_id' => $project->id,
+                'stage_id' => $stage?->id,
+            ]));
         }
     }
 }

@@ -13,9 +13,16 @@ class DashboardController extends Controller
 
     public function index(Request $request)
     {
+        $user = $request->user();
         $data = $this->dashboardService->getSummary($request->user());
 
+        $pendingInvitations = \App\Models\ProjectInvitation::where('email', $user->email)
+            ->where('status', \App\Models\ProjectInvitation::STATUS_PENDING)
+            ->count();
+
         return view('dashboard', [
+            'tenant' => $user->tenant,
+            'pendingInvitations' => $pendingInvitations,
             'stats' => [
                 'total_projects'    => $data['projectCount'],
                 'active_projects'   => $data['activeProjects'],

@@ -29,6 +29,7 @@ class ProjectService
     public function create(array $data, User $owner): Project
     {
         $project = Project::create([
+            'tenant_id' => $owner->tenant_id,
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
             'status' => $data['status'] ?? Project::STATUS_ACTIVE,
@@ -36,10 +37,7 @@ class ProjectService
             'deadline' => $data['deadline'] ?? null,
         ]);
 
-        // Attach members if provided
-        if (!empty($data['members'])) {
-            $project->members()->sync($data['members']);
-        }
+        $this->inviteMembers($project, $data['member_emails'] ?? [], $owner);
 
         return $project;
     }
@@ -56,12 +54,53 @@ class ProjectService
             'deadline' => $data['deadline'] ?? null,
         ]);
 
-        // Sync members
-        if (isset($data['members'])) {
-            $project->members()->sync($data['members']);
-        }
+        $this->inviteMembers($project, $data['member_emails'] ?? [], $project->owner);
 
         return $project->fresh();
+    }
+
+    /**
+     * @param array<int, string> $emails
+     */
+    private function inviteMembers(Project $project, array $emails, User $inviter): void
+    {
+        if (empty($emails)) {
+            return;
+        }
+
+        $emails = collect($emails)
+            ->map(fn ($email) => strtolower(trim($email)))
+            ->filter()
+            ->unique()
+            ->values();
+
+        $users = User::whereIn('email', $emails)
+            ->where('tenant_id', $project->tenant_id)
+            ->get();
+
+        foreach ($users as $user) {
+            if ($user->id === $inviter->id) {
+                continue;
+            }
+
+            if ($project->members()->where('users.id', $user->id)->exists()) {
+                continue;
+            }
+
+            if ($project->invitations()
+                ->where('email', $user->email)
+                ->where('status', \App\Models\ProjectInvitation::STATUS_PENDING)
+                ->exists()) {
+                continue;
+            }
+
+            $project->invitations()->create([
+                'tenant_id' => $project->tenant_id,
+                'email' => $user->email,
+                'invited_by' => $inviter->id,
+                'status' => \App\Models\ProjectInvitation::STATUS_PENDING,
+            ]);
+        }
     }
 
     /**

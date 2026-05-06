@@ -22,6 +22,7 @@ class UpdateTaskRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'status' => ['required', Rule::in(Task::STATUSES)],
+            'stage_id' => ['nullable', 'exists:workflow_stages,id'],
             'priority' => ['required', Rule::in(Task::PRIORITIES)],
             'assigned_to' => ['nullable', 'exists:users,id'],
             'deadline' => ['nullable', 'date'],

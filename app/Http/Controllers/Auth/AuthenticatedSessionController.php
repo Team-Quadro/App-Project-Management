@@ -28,6 +28,12 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        $user = $request->user();
+
+        if ($user && ! $user->isSuperAdmin() && ! $user->tenant_id) {
+            return redirect()->route('onboarding.index');
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

@@ -25,8 +25,8 @@
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <!-- Role Badge -->
                 <span
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ Auth::user()->isAdmin() ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800' }} me-3">
-                    {{ ucfirst(Auth::user()->role) }}
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ Auth::user()->isSuperAdmin() ? 'bg-purple-100 text-purple-800' : (Auth::user()->isCompanyAdmin() ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600') }} me-3">
+                    {{ Auth::user()->role_label }}
                 </span>
 
                 <x-dropdown align="right" width="48">

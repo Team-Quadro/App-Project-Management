@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Project;
-use App\Models\User;
 use App\Services\ProjectService;
 use Illuminate\Http\Request;
 
@@ -33,9 +32,7 @@ class ProjectController extends Controller
      */
     public function create()
     {
-        $users = User::where('id', '!=', auth()->id())->orderBy('name')->get();
-
-        return view('projects.create', compact('users'));
+        return view('projects.create');
     }
 
     /**
@@ -91,9 +88,8 @@ class ProjectController extends Controller
         $this->authorize('update', $project);
 
         $project->load('members');
-        $users = User::where('id', '!=', $project->owner_id)->orderBy('name')->get();
 
-        return view('projects.edit', compact('project', 'users'));
+        return view('projects.edit', compact('project'));
     }
 
     /**

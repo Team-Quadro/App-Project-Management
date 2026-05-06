@@ -2,18 +2,22 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Builder;
+use App\Models\WorkflowStage;
+use App\Models\ProjectInvitation;
 
 class Project extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToTenant;
 
     protected $fillable = [
+        'tenant_id',
         'title',
         'description',
         'status',
@@ -51,15 +55,63 @@ class Project extends Model
         return $this->belongsTo(User::class , 'owner_id');
     }
 
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
     public function members(): BelongsToMany
     {
         return $this->belongsToMany(User::class , 'project_members')
+            ->withPivot('tenant_id')
             ->withTimestamps();
     }
 
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
+    }
+
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(ProjectInvitation::class);
+    }
+
+    public function stages(): HasMany
+    {
+        return $this->hasMany(WorkflowStage::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    protected static function booted(): void
+    {
+        static::created(function (Project $project): void {
+            $project->ensureDefaultStages();
+        });
+    }
+
+    public function ensureDefaultStages(): void
+    {
+        if ($this->stages()->exists()) {
+            return;
+        }
+
+        foreach ($this->defaultStages() as $stage) {
+            $this->stages()->create(array_merge($stage, [
+                'tenant_id' => $this->tenant_id,
+            ]));
+        }
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function defaultStages(): array
+    {
+        return [
+            ['name' => 'Backlog', 'key' => 'todo', 'sort_order' => 1],
+            ['name' => 'In Progress', 'key' => 'in_progress', 'sort_order' => 2],
+            ['name' => 'Done', 'key' => 'done', 'sort_order' => 3],
+        ];
     }
 
     /* --------------------------------------------------------
