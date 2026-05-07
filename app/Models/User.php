@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,6 +25,7 @@ class User extends Authenticatable
         'password',
         'role',
         'tenant_id',
+        'approval_status',
     ];
 
     /**
@@ -62,6 +64,7 @@ class User extends Authenticatable
         return in_array($this->role, [self::ROLE_PIC, self::ROLE_SUPERADMIN], true);
     }
 
+    // PERBAIKAN: Menggunakan constant ROLE_SUPERADMIN, bukan 'admin'
     public function isSuperAdmin(): bool
     {
         return $this->role === self::ROLE_SUPERADMIN;

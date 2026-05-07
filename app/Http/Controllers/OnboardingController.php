@@ -18,6 +18,8 @@ class OnboardingController extends Controller
                 ->first();
         }
 
-        return view('onboarding.index', compact('pendingTenant'));
+        $isWaitingForAdminApproval = $user && $user->approval_status === 'pending';
+
+        return view('onboarding.index', compact('pendingTenant', 'isWaitingForAdminApproval'));
     }
 }

@@ -9,19 +9,28 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TenantRegistrationController;
 use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboardController;
 use App\Http\Controllers\SuperAdmin\TenantApprovalController;
+use App\Http\Controllers\SuperAdmin\UserApprovalController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect()->route('login');
 });
 
+// GRUP 1: Ruang Tunggu & Setup (Hanya butuh Auth dasar)
 Route::middleware('auth')->group(function () {
+    // Ruang tunggu & Form Perusahaan
     Route::get('/onboarding', [OnboardingController::class, 'index'])->name('onboarding.index');
     Route::get('/register-company', [TenantRegistrationController::class, 'create'])->name('tenants.register');
     Route::post('/register-company', [TenantRegistrationController::class, 'store'])->name('tenants.store');
+
+    // Profile (User pending masih boleh edit profile/password)
+    Route::get('/profile', [ProfileController::class , 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class , 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class , 'destroy'])->name('profile.destroy');
 });
 
-Route::middleware(['auth', 'verified', 'tenant.active'])->group(function () {
+// GRUP 2: Aplikasi Utama (Butuh Auth DAN Lolos Middleware 'tenant.active')
+Route::middleware(['auth', 'tenant.active'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class , 'index'])->name('dashboard');
 
@@ -39,7 +48,8 @@ Route::middleware(['auth', 'verified', 'tenant.active'])->group(function () {
         ->name('projects.tasks.status');
 });
 
-Route::middleware(['auth', 'verified', 'superadmin'])
+// GRUP 3: Akses Super Admin
+Route::middleware(['auth', 'superadmin'])
     ->prefix('superadmin')
     ->name('superadmin.')
     ->group(function () {
@@ -47,12 +57,10 @@ Route::middleware(['auth', 'verified', 'superadmin'])
         Route::get('/tenants', [TenantApprovalController::class, 'index'])->name('tenants.index');
         Route::get('/tenants/{tenant}', [TenantApprovalController::class, 'show'])->name('tenants.show');
         Route::patch('/tenants/{tenant}', [TenantApprovalController::class, 'update'])->name('tenants.update');
-    });
 
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class , 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class , 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class , 'destroy'])->name('profile.destroy');
-});
+        // Custom Endpoint untuk approval user
+        Route::patch('/users/{user}/approval', [UserApprovalController::class, 'process'])
+            ->name('users.approval');
+    });
 
 require __DIR__ . '/auth.php';

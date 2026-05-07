@@ -32,6 +32,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'superadmin@example.com',
             'password' => bcrypt('superadmin123'),
             'role' => 'superadmin',
+            'approval_status' => 'approved',
         ]);
 
         $admin = User::create([
@@ -40,6 +41,7 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('admin123'),
             'role' => \App\Models\User::ROLE_PIC,
             'tenant_id' => $tenant->id,
+            'approval_status' => 'approved',
         ]);
 
         $tenant->update([
@@ -53,6 +55,7 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('user123'),
             'role' => 'member',
             'tenant_id' => $tenant->id,
+            'approval_status' => 'approved',
         ]);
 
         $prabo = User::create([
@@ -61,6 +64,7 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('user123'),
             'role' => 'member',
             'tenant_id' => $tenant->id,
+            'approval_status' => 'approved',
         ]);
 
         $gibrun = User::create([
@@ -69,6 +73,7 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('user123'),
             'role' => 'member',
             'tenant_id' => $tenant->id,
+            'approval_status' => 'approved',
         ]);
 
         $projectWebsite = Project::create([
