@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MemberController; // <-- 1. JANGAN LUPA IMPORT INI
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
@@ -34,6 +35,9 @@ Route::middleware(['auth', 'tenant.active'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class , 'index'])->name('dashboard');
 
+    // Members (Manajemen Karyawan oleh PIC) <-- 2. TAMBAHKAN DISINI
+    Route::resource('members', MemberController::class)->except(['show', 'edit', 'update']);
+
     // Invitations
     Route::get('/invitations', [ProjectInvitationController::class, 'index'])->name('invitations.index');
     Route::patch('/invitations/{invitation}/accept', [ProjectInvitationController::class, 'accept'])->name('invitations.accept');
@@ -46,6 +50,10 @@ Route::middleware(['auth', 'tenant.active'])->group(function () {
     Route::resource('projects.tasks', TaskController::class)->except(['index', 'show']);
     Route::patch('projects/{project}/tasks/{task}/status', [TaskController::class , 'updateStatus'])
         ->name('projects.tasks.status');
+        
+    // Kanban Board Drag and Drop Stage <-- 3. TAMBAHKAN DISINI
+    Route::patch('projects/{project}/tasks/{task}/stage', [TaskController::class, 'updateStage'])
+        ->name('projects.tasks.stage');
 });
 
 // GRUP 3: Akses Super Admin

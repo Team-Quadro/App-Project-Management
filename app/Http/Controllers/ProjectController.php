@@ -47,14 +47,27 @@ class ProjectController extends Controller
             ->with('success', 'Project created successfully.');
     }
 
-    /**
-     * Display the specified project.
-     */
+
     public function show(Request $request, Project $project)
     {
         $this->authorize('view', $project);
 
-        $project->load(['owner', 'members']);
+        // 1. Hitung total task di project ini untuk basis persentase workload
+        $totalProjectTasks = $project->tasks()->count();
+
+        // 2. Load owner dan members BERSERTA jumlah task yang di-assign ke mereka KHUSUS di project ini
+        $project->load([
+            'owner' => function ($query) use ($project) {
+                $query->withCount(['assignedTasks' => function ($q) use ($project) {
+                    $q->where('project_id', $project->id);
+                }]);
+            },
+            'members' => function ($query) use ($project) {
+                $query->withCount(['assignedTasks' => function ($q) use ($project) {
+                    $q->where('project_id', $project->id);
+                }]);
+            }
+        ]);
 
         $tasks = $project->tasks()
             ->search($request->query('search'))
@@ -66,10 +79,18 @@ class ProjectController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        // Users available for task assignment (owner + members)
+        // 3. Gabungkan users, hilangkan duplikat, dan kalkulasi persentase workload-nya
         $projectUsers = collect([$project->owner])
             ->merge($project->members)
             ->unique('id')
+            ->map(function ($user) use ($totalProjectTasks) {
+                // Kalkulasi workload: (Tugas User di Project / Total Tugas Project) * 100
+                $user->workload_percentage = $totalProjectTasks > 0 
+                    ? round(($user->assigned_tasks_count / $totalProjectTasks) * 100) 
+                    : 0;
+                
+                return $user;
+            })
             ->sortBy('name');
 
         return view('projects.show', [

@@ -105,4 +105,45 @@ class TaskController extends Controller
             ->route('projects.show', $project)
             ->with('success', 'Task status updated.');
     }
+
+    /**
+     * Update the workflow stage of a task via AJAX (Kanban Drag and Drop).
+     */
+    public function updateStage(Request $request, Project $project, Task $task)
+    {
+        // Pastikan user punya akses mengupdate task ini
+        $this->authorize('update', $task);
+
+        // Validasi bahwa stage_id yang dikirim benar-benar milik project ini
+        $request->validate([
+            'stage_id' => [
+                'required',
+                'exists:workflow_stages,id',
+                // Pastikan stage yang dipilih benar-benar milik project tempat task ini berada
+                function ($attribute, $value, $fail) use ($project) {
+                    $stageBelongsToProject = \App\Models\WorkflowStage::where('id', $value)
+                        ->where('project_id', $project->id)
+                        ->exists();
+                        
+                    if (!$stageBelongsToProject) {
+                        $fail('The selected workflow stage is invalid for this project.');
+                    }
+                },
+            ],
+        ]);
+
+        $task->update([
+            'stage_id' => $request->stage_id
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Task stage updated successfully.',
+            'task' => [
+                'id' => $task->id,
+                'title' => $task->title,
+                'new_stage_id' => $task->stage_id
+            ]
+        ]);
+    }
 }
