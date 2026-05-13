@@ -95,8 +95,21 @@ class TaskController extends Controller
     {
         $this->authorize('update', $task);
 
+        // Resolve valid statuses from the project's tenant stages
+        $validStatuses = Task::getValidStatuses();
+        if ($project->tenant_id) {
+            $stageKeys = \App\Models\WorkflowStage::withoutGlobalScopes()
+                ->where('tenant_id', $project->tenant_id)
+                ->whereNull('project_id')
+                ->pluck('key')
+                ->toArray();
+            if (!empty($stageKeys)) {
+                $validStatuses = $stageKeys;
+            }
+        }
+
         $request->validate([
-            'status' => ['required', 'in:' . implode(',', Task::STATUSES)],
+            'status' => ['required', 'in:' . implode(',', $validStatuses)],
         ]);
 
         $this->taskService->updateStatus($task, $request->input('status'));
@@ -107,43 +120,24 @@ class TaskController extends Controller
     }
 
     /**
-     * Update the workflow stage of a task via AJAX (Kanban Drag and Drop).
+     * Move a task to a different stage (drag & drop).
      */
-    public function updateStage(Request $request, Project $project, Task $task)
+    public function moveToStage(Request $request, Project $project, Task $task)
     {
-        // Pastikan user punya akses mengupdate task ini
         $this->authorize('update', $task);
 
-        // Validasi bahwa stage_id yang dikirim benar-benar milik project ini
         $request->validate([
-            'stage_id' => [
-                'required',
-                'exists:workflow_stages,id',
-                // Pastikan stage yang dipilih benar-benar milik project tempat task ini berada
-                function ($attribute, $value, $fail) use ($project) {
-                    $stageBelongsToProject = \App\Models\WorkflowStage::where('id', $value)
-                        ->where('project_id', $project->id)
-                        ->exists();
-                        
-                    if (!$stageBelongsToProject) {
-                        $fail('The selected workflow stage is invalid for this project.');
-                    }
-                },
-            ],
+            'stage_id' => ['required', 'exists:workflow_stages,id'],
         ]);
 
-        $task->update([
-            'stage_id' => $request->stage_id
-        ]);
+        $this->taskService->moveToStage($task, (int) $request->input('stage_id'));
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Task stage updated successfully.',
-            'task' => [
-                'id' => $task->id,
-                'title' => $task->title,
-                'new_stage_id' => $task->stage_id
-            ]
-        ]);
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true]);
+        }
+
+        return redirect()
+            ->route('projects.show', $project)
+            ->with('success', 'Task moved.');
     }
 }

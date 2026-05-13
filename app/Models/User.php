@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Models;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,9 +23,8 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'job_title',
         'tenant_id',
-        'approval_status',
+        'is_active',
     ];
 
     /**
@@ -49,6 +47,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -65,7 +64,6 @@ class User extends Authenticatable
         return in_array($this->role, [self::ROLE_PIC, self::ROLE_SUPERADMIN], true);
     }
 
-    // PERBAIKAN: Menggunakan constant ROLE_SUPERADMIN, bukan 'admin'
     public function isSuperAdmin(): bool
     {
         return $this->role === self::ROLE_SUPERADMIN;
@@ -85,6 +83,11 @@ class User extends Authenticatable
         };
     }
 
+    public function isActive(): bool
+    {
+        return (bool) $this->is_active;
+    }
+
     /* --------------------------------------------------------
      | Relationships
      | -------------------------------------------------------- */
@@ -94,7 +97,7 @@ class User extends Authenticatable
      */
     public function ownedProjects(): HasMany
     {
-        return $this->hasMany(Project::class , 'owner_id');
+        return $this->hasMany(Project::class, 'owner_id');
     }
 
     public function tenant(): BelongsTo
@@ -107,7 +110,7 @@ class User extends Authenticatable
      */
     public function memberProjects(): BelongsToMany
     {
-        return $this->belongsToMany(Project::class , 'project_members')
+        return $this->belongsToMany(Project::class, 'project_members')
             ->withPivot('tenant_id')
             ->withTimestamps();
     }
@@ -126,6 +129,6 @@ class User extends Authenticatable
      */
     public function assignedTasks(): HasMany
     {
-        return $this->hasMany(Task::class , 'assigned_to');
+        return $this->hasMany(Task::class, 'assigned_to');
     }
 }

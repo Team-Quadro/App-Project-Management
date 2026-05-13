@@ -16,13 +16,35 @@ class DashboardController extends Controller
         $user = $request->user();
         $data = $this->dashboardService->getSummary($request->user());
 
-        $pendingInvitations = \App\Models\ProjectInvitation::where('email', $user->email)
-            ->where('status', \App\Models\ProjectInvitation::STATUS_PENDING)
-            ->count();
+        $teamWorkload = collect();
+        if ($user->isCompanyAdmin() && $user->tenant_id) {
+            $teamWorkload = \App\Models\User::where('tenant_id', $user->tenant_id)
+                ->withCount([
+                    'assignedTasks as total_tasks',
+                    'assignedTasks as active_tasks' => function ($query) {
+                        $query->where('status', '!=', \App\Models\Task::STATUS_DONE);
+                    },
+                    'assignedTasks as completed_tasks' => function ($query) {
+                        $query->where('status', \App\Models\Task::STATUS_DONE);
+                    }
+                ])
+                ->get()
+                ->map(function ($member) {
+                    $total = $member->total_tasks;
+                    $active = $member->active_tasks;
+                    return [
+                        'name' => $member->name,
+                        'job_title' => $member->job_title ?? 'Team Member',
+                        'active_tasks' => $active,
+                        'completed_tasks' => $member->completed_tasks,
+                        'total_tasks' => $total,
+                        'workload_percentage' => $total > 0 ? min(100, round(($active / $total) * 100)) : 0,
+                    ];
+                });
+        }
 
         return view('dashboard', [
             'tenant' => $user->tenant,
-            'pendingInvitations' => $pendingInvitations,
             'stats' => [
                 'total_projects'    => $data['projectCount'],
                 'active_projects'   => $data['activeProjects'],
@@ -34,6 +56,7 @@ class DashboardController extends Controller
             ],
             'recentProjects'    => $data['recentProjects'],
             'upcomingDeadlines' => $data['upcomingTasks'],
+            'teamWorkload'      => $teamWorkload,
         ]);
     }
 }

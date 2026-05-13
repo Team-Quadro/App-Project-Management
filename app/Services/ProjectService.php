@@ -37,7 +37,40 @@ class ProjectService
             'deadline' => $data['deadline'] ?? null,
         ]);
 
-        $this->inviteMembers($project, $data['member_emails'] ?? [], $owner);
+        // Ensure default workflow stages exist for this tenant
+        $exists = \App\Models\WorkflowStage::withoutGlobalScopes()
+            ->where('tenant_id', $project->tenant_id)
+            ->whereNull('project_id')
+            ->exists();
+
+        if (! $exists && $project->tenant_id) {
+            \App\Models\WorkflowStage::create([
+                'tenant_id'  => $project->tenant_id,
+                'project_id' => null,
+                'name'       => 'Todo',
+                'key'        => 'todo',
+                'color'      => '#6b7280',
+                'sort_order' => 1,
+            ]);
+            \App\Models\WorkflowStage::create([
+                'tenant_id'  => $project->tenant_id,
+                'project_id' => null,
+                'name'       => 'Doing',
+                'key'        => 'doing',
+                'color'      => '#3b82f6',
+                'sort_order' => 2,
+            ]);
+            \App\Models\WorkflowStage::create([
+                'tenant_id'  => $project->tenant_id,
+                'project_id' => null,
+                'name'       => 'Done',
+                'key'        => 'done',
+                'color'      => '#22c55e',
+                'sort_order' => 3,
+            ]);
+        }
+
+        $this->syncMembers($project, $data['member_ids'] ?? []);
 
         return $project;
     }
@@ -54,53 +87,31 @@ class ProjectService
             'deadline' => $data['deadline'] ?? null,
         ]);
 
-        $this->inviteMembers($project, $data['member_emails'] ?? [], $project->owner);
+        $this->syncMembers($project, $data['member_ids'] ?? []);
 
         return $project->fresh();
     }
 
     /**
-     * @param array<int, string> $emails
+     * Sync project members by user IDs.
+     * Directly attaches selected users — no invitation flow needed.
      */
-    private function inviteMembers(Project $project, array $emails, User $inviter): void
+    private function syncMembers(Project $project, array $memberIds): void
     {
-        if (empty($emails)) {
-            return;
-        }
-
-        $emails = collect($emails)
-            ->map(fn ($email) => strtolower(trim($email)))
-            ->filter()
+        $memberIds = collect($memberIds)
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id !== $project->owner_id)
             ->unique()
-            ->values();
+            ->values()
+            ->toArray();
 
-        $users = User::whereIn('email', $emails)
-            ->where('tenant_id', $project->tenant_id)
-            ->get();
-
-        foreach ($users as $user) {
-            if ($user->id === $inviter->id) {
-                continue;
-            }
-
-            if ($project->members()->where('users.id', $user->id)->exists()) {
-                continue;
-            }
-
-            if ($project->invitations()
-                ->where('email', $user->email)
-                ->where('status', \App\Models\ProjectInvitation::STATUS_PENDING)
-                ->exists()) {
-                continue;
-            }
-
-            $project->invitations()->create([
-                'tenant_id' => $project->tenant_id,
-                'email' => $user->email,
-                'invited_by' => $inviter->id,
-                'status' => \App\Models\ProjectInvitation::STATUS_PENDING,
-            ]);
+        // Sync with pivot data (tenant_id)
+        $syncData = [];
+        foreach ($memberIds as $id) {
+            $syncData[$id] = ['tenant_id' => $project->tenant_id];
         }
+
+        $project->members()->sync($syncData);
     }
 
     /**

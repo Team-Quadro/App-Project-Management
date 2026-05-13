@@ -26,6 +26,9 @@ class TenantScope implements Scope
         }
 
         if (method_exists($user, 'isSuperAdmin') && $user->isSuperAdmin()) {
+            if (session()->has('superadmin_tenant_id')) {
+                $builder->where($model->getTable() . '.tenant_id', session('superadmin_tenant_id'));
+            }
             return;
         }
 

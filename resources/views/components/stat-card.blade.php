@@ -1,9 +1,9 @@
-@props(['label', 'value', 'icon' => null, 'trend' => null, 'color' => 'brand'])
+@props(['label', 'value', 'icon' => null, 'trend' => null, 'color' => 'primary'])
 
 <div class="v-card p-4">
-    <p class="text-[12px] text-gray-500 font-medium">{{ $label }}</p>
-    <p class="text-2xl font-semibold text-gray-900 mt-1 tabular-nums">{{ $value }}</p>
+    <p class="text-[13px] text-ink-subtle font-medium">{{ $label }}</p>
+    <p class="text-3xl font-semibold text-ink mt-2 tabular-nums {{ $attributes->get('class') }}">{{ $value }}</p>
     @if ($trend)
-    <p class="text-[12px] text-gray-400 mt-1">{{ $trend }}</p>
+    <p class="text-[12px] text-ink-muted mt-1">{{ $trend }}</p>
     @endif
 </div>

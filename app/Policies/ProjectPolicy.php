@@ -28,7 +28,7 @@ class ProjectPolicy
      */
     public function create(User $user): bool
     {
-        return true;
+        return $user->isAdmin();
     }
 
     /**
@@ -36,7 +36,7 @@ class ProjectPolicy
      */
     public function update(User $user, Project $project): bool
     {
-        return $user->isAdmin() || $this->isParticipant($user, $project);
+        return $user->isAdmin();
     }
 
     /**
@@ -44,7 +44,7 @@ class ProjectPolicy
      */
     public function delete(User $user, Project $project): bool
     {
-        return $user->isAdmin() || $project->owner_id === $user->id;
+        return $user->isAdmin();
     }
 
     /**

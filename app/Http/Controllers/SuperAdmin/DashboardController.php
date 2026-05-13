@@ -16,4 +16,19 @@ class DashboardController extends Controller
     {
         return view('superadmin.dashboard', $this->dashboardService->summary());
     }
+
+    public function switchTenant(\Illuminate\Http\Request $request)
+    {
+        $request->validate([
+            'tenant_id' => 'nullable|exists:tenants,id'
+        ]);
+
+        if ($request->tenant_id) {
+            session(['superadmin_tenant_id' => $request->tenant_id]);
+        } else {
+            session()->forget('superadmin_tenant_id');
+        }
+
+        return redirect()->back();
+    }
 }

@@ -39,13 +39,38 @@ class Task extends Model
 
     public const STATUS_TODO = 'todo';
     public const STATUS_IN_PROGRESS = 'in_progress';
+    public const STATUS_IN_REVIEW = 'in_review';
     public const STATUS_DONE = 'done';
 
+    // Legacy fallback – prefer dynamic stage keys from WorkflowStage
     public const STATUSES = [
         self::STATUS_TODO,
         self::STATUS_IN_PROGRESS,
+        self::STATUS_IN_REVIEW,
         self::STATUS_DONE,
     ];
+
+    /**
+     * Get all valid status keys for the authenticated user's tenant.
+     * Falls back to STATUSES constant if no stages exist.
+     */
+    public static function getValidStatuses(): array
+    {
+        $tenantId = auth()->user()?->tenant_id
+            ?? session('superadmin_tenant_id');
+
+        if (!$tenantId) {
+            return self::STATUSES;
+        }
+
+        $keys = WorkflowStage::withoutGlobalScopes()
+            ->where('tenant_id', $tenantId)
+            ->whereNull('project_id')
+            ->pluck('key')
+            ->toArray();
+
+        return empty($keys) ? self::STATUSES : $keys;
+    }
 
     public const PRIORITY_LOW = 'low';
     public const PRIORITY_MEDIUM = 'medium';
