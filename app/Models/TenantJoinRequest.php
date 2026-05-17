@@ -7,17 +7,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class ProjectInvitation extends Model
+class TenantJoinRequest extends Model
 {
     use HasFactory, BelongsToTenant;
 
     protected $fillable = [
         'tenant_id',
-        'project_id',
-        'email',
-        'invited_by',
+        'user_id',
         'status',
-        'accepted_user_id',
+        'approved_by',
         'responded_at',
     ];
 
@@ -29,27 +27,27 @@ class ProjectInvitation extends Model
     }
 
     public const STATUS_PENDING = 'pending';
-    public const STATUS_ACCEPTED = 'accepted';
-    public const STATUS_DECLINED = 'declined';
+    public const STATUS_APPROVED = 'approved';
+    public const STATUS_REJECTED = 'rejected';
 
     public const STATUSES = [
         self::STATUS_PENDING,
-        self::STATUS_ACCEPTED,
-        self::STATUS_DECLINED,
+        self::STATUS_APPROVED,
+        self::STATUS_REJECTED,
     ];
 
-    public function project(): BelongsTo
+    public function tenant(): BelongsTo
     {
-        return $this->belongsTo(Project::class);
+        return $this->belongsTo(Tenant::class);
     }
 
-    public function inviter(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'invited_by');
+        return $this->belongsTo(User::class);
     }
 
-    public function acceptedUser(): BelongsTo
+    public function approver(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'accepted_user_id');
+        return $this->belongsTo(User::class, 'approved_by');
     }
 }

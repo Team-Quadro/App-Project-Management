@@ -18,6 +18,7 @@ class WorkflowStage extends Model
         'name',
         'key',
         'sort_order',
+        'color',
     ];
 
     public function project(): BelongsTo

@@ -23,14 +23,14 @@ class UserApprovalController extends Controller
 
         // Skenario 1: Super Admin Menolak (Reject)
         if ($request->action === 'reject') {
-            $user->update(['approval_status' => 'rejected']);
+            $user->update(['is_active' => false]);
 
             return redirect()->back()->with('success', 'Akun karyawan berhasil ditolak.');
         }
 
         // Skenario 2: Super Admin Menerima (Approve)
         $user->update([
-            'approval_status' => 'approved',
+            'is_active'       => true,
             'role'            => $request->role,        // Ketikan manual (misal: "UI/UX", "Developer")
             'tenant_id'       => $request->tenant_id,   // Dimasukkan ke perusahaan/workspace mana
         ]);

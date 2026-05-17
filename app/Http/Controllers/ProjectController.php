@@ -15,24 +15,16 @@ class ProjectController extends Controller
     ) {}
 
     /**
-     * Display a listing of projects.
-     */
-    public function index(Request $request)
-    {
-        $projects = $this->projectService->list($request->user(), $request->only(['search', 'status']));
-
-        return view('projects.index', [
-            'projects' => $projects,
-            'filters'  => $request->only(['search', 'status']),
-        ]);
-    }
-
-    /**
      * Show the form for creating a new project.
      */
-    public function create()
+    public function create(Request $request)
     {
-        return view('projects.create');
+        $tenantUsers = \App\Models\User::where('tenant_id', $request->user()->tenant_id)
+            ->where('id', '!=', $request->user()->id)
+            ->orderBy('name')
+            ->get();
+
+        return view('projects.create', compact('tenantUsers'));
     }
 
     /**
@@ -47,70 +39,21 @@ class ProjectController extends Controller
             ->with('success', 'Project created successfully.');
     }
 
-
-    public function show(Request $request, Project $project)
-    {
-        $this->authorize('view', $project);
-
-        // 1. Hitung total task di project ini untuk basis persentase workload
-        $totalProjectTasks = $project->tasks()->count();
-
-        // 2. Load owner dan members BERSERTA jumlah task yang di-assign ke mereka KHUSUS di project ini
-        $project->load([
-            'owner' => function ($query) use ($project) {
-                $query->withCount(['assignedTasks' => function ($q) use ($project) {
-                    $q->where('project_id', $project->id);
-                }]);
-            },
-            'members' => function ($query) use ($project) {
-                $query->withCount(['assignedTasks' => function ($q) use ($project) {
-                    $q->where('project_id', $project->id);
-                }]);
-            }
-        ]);
-
-        $tasks = $project->tasks()
-            ->search($request->query('search'))
-            ->filterStatus($request->query('task_status'))
-            ->filterPriority($request->query('priority'))
-            ->filterAssignee($request->query('assignee') ? (int) $request->query('assignee') : null)
-            ->with('assignee')
-            ->latest()
-            ->paginate(10)
-            ->withQueryString();
-
-        // 3. Gabungkan users, hilangkan duplikat, dan kalkulasi persentase workload-nya
-        $projectUsers = collect([$project->owner])
-            ->merge($project->members)
-            ->unique('id')
-            ->map(function ($user) use ($totalProjectTasks) {
-                // Kalkulasi workload: (Tugas User di Project / Total Tugas Project) * 100
-                $user->workload_percentage = $totalProjectTasks > 0 
-                    ? round(($user->assigned_tasks_count / $totalProjectTasks) * 100) 
-                    : 0;
-                
-                return $user;
-            })
-            ->sortBy('name');
-
-        return view('projects.show', [
-            'project'      => $project,
-            'tasks'        => $tasks,
-            'projectUsers' => $projectUsers,
-            'filters'      => $request->only(['search', 'task_status', 'priority', 'assignee']),
-        ]);
-    }
-
     /**
      * Show the form for editing a project.
      */
-    public function edit(Project $project)
+    public function edit(Request $request, Project $project)
     {
         $this->authorize('update', $project);
 
         $project->load('members');
 
-        return view('projects.edit', compact('project'));
+        $tenantUsers = \App\Models\User::where('tenant_id', $project->tenant_id)
+            ->where('id', '!=', $project->owner_id)
+            ->orderBy('name')
+            ->get();
+
+        return view('projects.edit', compact('project', 'tenantUsers'));
     }
 
     /**

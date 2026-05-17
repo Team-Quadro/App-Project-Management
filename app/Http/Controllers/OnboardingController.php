@@ -3,23 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tenant;
+use App\Models\TenantJoinRequest;
 use Illuminate\View\View;
 
 class OnboardingController extends Controller
 {
     public function index(): View
     {
-        $user = request()->user();
-        $pendingTenant = null;
+        $tenants = Tenant::orderBy('company_name')->get();
 
-        if ($user) {
-            $pendingTenant = Tenant::where('requested_by', $user->id)
-                ->latest()
-                ->first();
-        }
+        $pendingRequest = TenantJoinRequest::withoutGlobalScopes()
+            ->where('user_id', auth()->id())
+            ->where('status', TenantJoinRequest::STATUS_PENDING)
+            ->with('tenant')
+            ->first();
 
-        $isWaitingForAdminApproval = $user && $user->approval_status === 'pending';
-
-        return view('onboarding.index', compact('pendingTenant', 'isWaitingForAdminApproval'));
+        return view('onboarding.index', compact('tenants', 'pendingRequest'));
     }
 }

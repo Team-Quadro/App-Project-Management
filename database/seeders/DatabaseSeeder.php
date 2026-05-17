@@ -32,7 +32,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'superadmin@example.com',
             'password' => bcrypt('superadmin123'),
             'role' => 'superadmin',
-            'approval_status' => 'approved',
+            'is_active' => true,
         ]);
 
         $admin = User::create([
@@ -41,7 +41,7 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('admin123'),
             'role' => \App\Models\User::ROLE_PIC,
             'tenant_id' => $tenant->id,
-            'approval_status' => 'approved',
+            'is_active' => true,
         ]);
 
         $tenant->update([
@@ -55,7 +55,7 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('user123'),
             'role' => 'member',
             'tenant_id' => $tenant->id,
-            'approval_status' => 'approved',
+            'is_active' => true,
         ]);
 
         $prabo = User::create([
@@ -64,7 +64,7 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('user123'),
             'role' => 'member',
             'tenant_id' => $tenant->id,
-            'approval_status' => 'approved',
+            'is_active' => true,
         ]);
 
         $gibrun = User::create([
@@ -73,7 +73,7 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('user123'),
             'role' => 'member',
             'tenant_id' => $tenant->id,
-            'approval_status' => 'approved',
+            'is_active' => true,
         ]);
 
         $projectWebsite = Project::create([
@@ -135,27 +135,55 @@ class DatabaseSeeder extends Seeder
             'deadline' => null,
         ]);
 
-        $this->createTasks($projectWebsite, [
+        // Create default global workflow stages for this tenant
+        $stageTodo = \App\Models\WorkflowStage::create([
+            'tenant_id'  => $tenant->id,
+            'project_id' => null,
+            'name'       => 'Todo',
+            'key'        => 'todo',
+            'color'      => '#6b7280',
+            'sort_order' => 1,
+        ]);
+        $stageDoing = \App\Models\WorkflowStage::create([
+            'tenant_id'  => $tenant->id,
+            'project_id' => null,
+            'name'       => 'Doing',
+            'key'        => 'doing',
+            'color'      => '#3b82f6',
+            'sort_order' => 2,
+        ]);
+        $stageDone = \App\Models\WorkflowStage::create([
+            'tenant_id'  => $tenant->id,
+            'project_id' => null,
+            'name'       => 'Done',
+            'key'        => 'done',
+            'color'      => '#22c55e',
+            'sort_order' => 3,
+        ]);
+
+        $tenantStages = collect([$stageTodo, $stageDoing, $stageDone]);
+
+        $this->createTasks($projectWebsite, $tenantStages, [
             ['title' => 'Design homepage mockup', 'status' => 'done', 'priority' => 'high', 'assigned_to' => $joko->id, 'deadline' => now()->addWeeks(1)],
-            ['title' => 'Implement responsive navbar', 'status' => 'in_progress', 'priority' => 'high', 'assigned_to' => $prabo->id, 'deadline' => now()->addWeeks(2)],
+            ['title' => 'Implement responsive navbar', 'status' => 'doing', 'priority' => 'high', 'assigned_to' => $prabo->id, 'deadline' => now()->addWeeks(2)],
             ['title' => 'Create about page', 'status' => 'todo', 'priority' => 'medium', 'assigned_to' => $joko->id, 'deadline' => now()->addWeeks(3)],
             ['title' => 'Set up CI/CD pipeline', 'status' => 'todo', 'priority' => 'low', 'assigned_to' => null, 'deadline' => now()->addMonth()],
             ['title' => 'Write unit tests', 'status' => 'todo', 'priority' => 'medium', 'assigned_to' => $prabo->id, 'deadline' => now()->addMonth()],
         ]);
 
-        $this->createTasks($projectMobile, [
+        $this->createTasks($projectMobile, $tenantStages, [
             ['title' => 'Set up React Native project', 'status' => 'done', 'priority' => 'high', 'assigned_to' => $prabo->id, 'deadline' => now()->addWeeks(1)],
-            ['title' => 'Design login screen', 'status' => 'in_progress', 'priority' => 'high', 'assigned_to' => $gibrun->id, 'deadline' => now()->addWeeks(2)],
+            ['title' => 'Design login screen', 'status' => 'doing', 'priority' => 'high', 'assigned_to' => $gibrun->id, 'deadline' => now()->addWeeks(2)],
             ['title' => 'Implement push notifications', 'status' => 'todo', 'priority' => 'medium', 'assigned_to' => null, 'deadline' => now()->addMonths(2)],
         ]);
 
-        $this->createTasks($projectApi, [
+        $this->createTasks($projectApi, $tenantStages, [
             ['title' => 'Research payment gateway options', 'status' => 'done', 'priority' => 'high', 'assigned_to' => $prabo->id, 'deadline' => now()->subDays(3)],
-            ['title' => 'Implement Stripe integration', 'status' => 'in_progress', 'priority' => 'high', 'assigned_to' => $joko->id, 'deadline' => now()->addWeeks(2)],
+            ['title' => 'Implement Stripe integration', 'status' => 'doing', 'priority' => 'high', 'assigned_to' => $joko->id, 'deadline' => now()->addWeeks(2)],
             ['title' => 'Write API documentation', 'status' => 'todo', 'priority' => 'low', 'assigned_to' => null, 'deadline' => now()->addMonth()],
         ]);
 
-        $this->createTasks($projectLegacy, [
+        $this->createTasks($projectLegacy, $tenantStages, [
             ['title' => 'Export legacy data', 'status' => 'done', 'priority' => 'high', 'assigned_to' => $gibrun->id, 'deadline' => now()->subMonths(1)],
             ['title' => 'Import to new system', 'status' => 'done', 'priority' => 'high', 'assigned_to' => $gibrun->id, 'deadline' => now()->subWeeks(2)],
             ['title' => 'Validate data', 'status' => 'done', 'priority' => 'medium', 'assigned_to' => $admin->id, 'deadline' => now()->subWeek()],
@@ -163,20 +191,18 @@ class DatabaseSeeder extends Seeder
     }
 
     /**
-     * Helper to create tasks for a project.
+     * Helper to create tasks for a project using tenant-wide stages.
      */
-    private function createTasks(Project $project, array $tasks): void
+    private function createTasks(Project $project, \Illuminate\Support\Collection $tenantStages, array $tasks): void
     {
-        $project->loadMissing('stages');
-
         foreach ($tasks as $data) {
             $status = $data['status'] ?? Task::STATUS_TODO;
-            $stage = $project->stages->firstWhere('key', $status) ?? $project->stages->first();
+            $stage = $tenantStages->firstWhere('key', $status) ?? $tenantStages->first();
 
             Task::create(array_merge($data, [
-                'tenant_id' => $project->tenant_id,
+                'tenant_id'  => $project->tenant_id,
                 'project_id' => $project->id,
-                'stage_id' => $stage?->id,
+                'stage_id'   => $stage?->id,
             ]));
         }
     }

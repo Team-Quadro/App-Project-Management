@@ -22,7 +22,7 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-   public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
 
@@ -30,17 +30,17 @@ class AuthenticatedSessionController extends Controller
 
         $user = $request->user();
 
-        // 1. Kalau dia Super Admin, VIP langsung masuk ke Dasbor Super Admin
-        if ($user->isSuperAdmin()) {
-            return redirect()->intended(route('superadmin.dashboard', absolute: false));
+        if ($user && ! $user->isActive()) {
+            Auth::guard('web')->logout();
+
+            return redirect()->route('login')
+                ->with('error', 'Your account is not active yet. Please contact the administrator.');
         }
 
-        // 2. Ruang Tunggu: Kalau belum punya perusahaan ATAU masih pending
-        if (! $user->tenant_id || $user->approval_status === 'pending') {
+        if ($user && ! $user->isSuperAdmin() && ! $user->tenant_id) {
             return redirect()->route('onboarding.index');
         }
 
-        // 3. Pekerja yang sudah lolos approval masuk ke dasbor utama
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Builder;
 use App\Models\WorkflowStage;
-use App\Models\ProjectInvitation;
 
 class Project extends Model
 {
@@ -72,46 +71,23 @@ class Project extends Model
         return $this->hasMany(Task::class);
     }
 
-    public function invitations(): HasMany
-    {
-        return $this->hasMany(ProjectInvitation::class);
-    }
-
+    // Stages are now global per-tenant, not per-project.
+    // This relationship is kept for backward compatibility.
     public function stages(): HasMany
     {
         return $this->hasMany(WorkflowStage::class)->orderBy('sort_order')->orderBy('id');
     }
 
-    protected static function booted(): void
-    {
-        static::created(function (Project $project): void {
-            $project->ensureDefaultStages();
-        });
-    }
-
-    public function ensureDefaultStages(): void
-    {
-        if ($this->stages()->exists()) {
-            return;
-        }
-
-        foreach ($this->defaultStages() as $stage) {
-            $this->stages()->create(array_merge($stage, [
-                'tenant_id' => $this->tenant_id,
-            ]));
-        }
-    }
-
     /**
-     * @return array<int, array<string, mixed>>
+     * Get the tenant-wide workflow stages for this project's tenant.
      */
-    public function defaultStages(): array
+    public function tenantStages()
     {
-        return [
-            ['name' => 'Backlog', 'key' => 'todo', 'sort_order' => 1],
-            ['name' => 'In Progress', 'key' => 'in_progress', 'sort_order' => 2],
-            ['name' => 'Done', 'key' => 'done', 'sort_order' => 3],
-        ];
+        return WorkflowStage::withoutGlobalScopes()
+            ->where('tenant_id', $this->tenant_id)
+            ->whereNull('project_id')
+            ->orderBy('sort_order')
+            ->get();
     }
 
     /* --------------------------------------------------------

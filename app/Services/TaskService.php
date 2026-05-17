@@ -30,17 +30,17 @@ class TaskService
      */
     public function create(Project $project, array $data): Task
     {
-        $stageId = $data['stage_id'] ?? $this->resolveStageIdFromStatus($project, $data['status'] ?? Task::STATUS_TODO);
+        $stageId = $data['stage_id'] ?? $this->resolveStageId($project->tenant_id, $data['status'] ?? Task::STATUS_TODO);
 
         return $project->tasks()->create([
-            'tenant_id' => $project->tenant_id,
-            'stage_id' => $stageId,
-            'title' => $data['title'],
+            'tenant_id'   => $project->tenant_id,
+            'stage_id'    => $stageId,
+            'title'       => $data['title'],
             'description' => $data['description'] ?? null,
-            'status' => $data['status'] ?? Task::STATUS_TODO,
-            'priority' => $data['priority'] ?? Task::PRIORITY_MEDIUM,
+            'status'      => $data['status'] ?? Task::STATUS_TODO,
+            'priority'    => $data['priority'] ?? Task::PRIORITY_MEDIUM,
             'assigned_to' => $data['assigned_to'] ?? null,
-            'deadline' => $data['deadline'] ?? null,
+            'deadline'    => $data['deadline'] ?? null,
         ]);
     }
 
@@ -49,17 +49,18 @@ class TaskService
      */
     public function update(Task $task, array $data): Task
     {
-        $project = $task->project()->with('stages')->first();
-        $stageId = $data['stage_id'] ?? ($project ? $this->resolveStageIdFromStatus($project, $data['status'] ?? $task->status) : $task->stage_id);
+        $tenantId = $task->tenant_id ?? $task->project?->tenant_id;
+        $newStatus = $data['status'] ?? $task->status;
+        $stageId = $data['stage_id'] ?? $this->resolveStageId($tenantId, $newStatus);
 
         $task->update([
-            'stage_id' => $stageId,
-            'title' => $data['title'],
+            'stage_id'    => $stageId,
+            'title'       => $data['title'],
             'description' => $data['description'] ?? null,
-            'status' => $data['status'] ?? $task->status,
-            'priority' => $data['priority'] ?? $task->priority,
+            'status'      => $newStatus,
+            'priority'    => $data['priority'] ?? $task->priority,
             'assigned_to' => $data['assigned_to'] ?? null,
-            'deadline' => $data['deadline'] ?? null,
+            'deadline'    => $data['deadline'] ?? null,
         ]);
 
         return $task->fresh();
@@ -70,24 +71,60 @@ class TaskService
      */
     public function updateStatus(Task $task, string $status): Task
     {
-        $project = $task->project()->with('stages')->first();
-        $stageId = $project ? $this->resolveStageIdFromStatus($project, $status) : null;
+        $tenantId = $task->tenant_id ?? $task->project?->tenant_id;
+        $stageId = $this->resolveStageId($tenantId, $status);
 
-        $task->update(array_filter([
-            'status' => $status,
+        $task->update([
+            'status'   => $status,
             'stage_id' => $stageId,
-        ], static fn ($value) => ! is_null($value)));
+        ]);
 
         return $task;
     }
 
-    private function resolveStageIdFromStatus(Project $project, string $status): ?int
+    /**
+     * Move a task to a different stage (drag & drop).
+     */
+    public function moveToStage(Task $task, int $stageId): Task
     {
-        $stage = $project->stages->first(function (WorkflowStage $stage) use ($status) {
-            return $stage->key === $status;
-        });
+        $stage = WorkflowStage::withoutGlobalScopes()->find($stageId);
+        if (!$stage) {
+            return $task;
+        }
 
-        return $stage?->id ?? $project->stages->first()?->id;
+        $task->update([
+            'stage_id' => $stageId,
+            'status'   => $stage->key,
+        ]);
+
+        return $task;
+    }
+
+    /**
+     * Resolve stage ID from tenant-wide workflow stages by status key.
+     */
+    private function resolveStageId(?int $tenantId, string $status): ?int
+    {
+        if (!$tenantId) {
+            return null;
+        }
+
+        $stage = WorkflowStage::withoutGlobalScopes()
+            ->where('tenant_id', $tenantId)
+            ->whereNull('project_id')
+            ->where('key', $status)
+            ->first();
+
+        // Fallback to first stage if exact key not found
+        if (!$stage) {
+            $stage = WorkflowStage::withoutGlobalScopes()
+                ->where('tenant_id', $tenantId)
+                ->whereNull('project_id')
+                ->orderBy('sort_order')
+                ->first();
+        }
+
+        return $stage?->id;
     }
 
     /**

@@ -18,6 +18,29 @@
     --color-surface: oklch(0.98 0.002 260);
     --color-muted: oklch(0.55 0 0);
 
+    /* Design system tokens (DESIGN.md) */
+    --color-canvas: #010102;
+    --color-surface-1: #0f1115;
+    --color-surface-2: #161a20;
+    --color-surface-3: #1d222a;
+    --color-surface-4: #232a33;
+    --color-hairline: #23252a;
+    --color-hairline-strong: #2b2f36;
+    --color-hairline-tertiary: #343a44;
+    --color-ink: #f7f8f8;
+    --color-ink-muted: #d0d6e0;
+    --color-ink-subtle: #8a8f98;
+    --color-ink-tertiary: #62666d;
+    --color-primary: #5e6ad2;
+    --color-primary-hover: #828fff;
+    --color-primary-focus: #5e69d1;
+    --color-brand-secure: #7a7fad;
+    --color-semantic-success: #27a644;
+    --color-semantic-overlay: #000000;
+    --color-inverse-canvas: #ffffff;
+    --color-inverse-surface-1: #f5f6f8;
+    --color-inverse-surface-2: #eef0f3;
+
     --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
@@ -55,49 +78,53 @@
 
 /* Input base */
 .v-input {
-    @apply w-full px-3 py-2 text-sm bg-white border border-border rounded-[4px] text-gray-900
-           placeholder:text-gray-400
+    @apply w-full px-3 py-2 text-sm bg-surface-1 border border-hairline rounded-md text-ink
+           placeholder:text-ink-tertiary
            transition-colors duration-150
-           hover:border-border-hover
-           focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30;
+           hover:border-hairline-strong
+           focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary-focus/50;
 }
 
 .v-select {
-    @apply w-full px-3 py-2 text-sm bg-white border border-border rounded-[4px] text-gray-900
+    @apply w-full px-3 py-2 text-sm bg-surface-1 border border-hairline rounded-md text-ink
            transition-colors duration-150
-           hover:border-border-hover
-           focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30;
+           hover:border-hairline-strong
+           focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary-focus/50;
 }
 
 .v-label {
-    @apply block text-[13px] font-medium text-gray-700 mb-1.5;
+    @apply block text-[13px] font-medium text-ink-subtle mb-1.5;
 }
 
 .v-btn-primary {
-    @apply inline-flex items-center justify-center px-4 py-1 text-xs text-sm font-medium text-white bg-brand-600
-           rounded-[4px] border border-brand-600
+    @apply inline-flex items-center justify-center px-3.5 py-2 text-sm font-medium text-white bg-primary
+        rounded-md border border-primary
            shadow-xs
            transition-all duration-150
-           hover:bg-brand-700 hover:border-brand-700 hover:shadow-sm
-           focus:outline-none focus:ring-2 focus:ring-brand-500/30;
+        hover:bg-primary-hover hover:border-primary-hover hover:shadow-sm
+        focus:outline-none focus:ring-2 focus:ring-primary-focus/50;
 }
 
 .v-btn-secondary {
-    @apply inline-flex items-center justify-center px-4 py-1 text-xs text-sm font-medium text-gray-700 bg-white
-           rounded-[4px] border border-border
+    @apply inline-flex items-center justify-center px-3.5 py-2 text-sm font-medium text-ink bg-surface-1
+        rounded-md border border-hairline
            transition-colors duration-150
-           hover:bg-gray-50 hover:border-border-hover
-           focus:outline-none focus:ring-2 focus:ring-brand-500/10;
+        hover:bg-surface-2 hover:border-hairline-strong
+        focus:outline-none focus:ring-2 focus:ring-primary-focus/30;
 }
 
 .v-btn-danger {
-    @apply inline-flex items-center justify-center px-4 py-1 text-xs text-sm font-medium text-white bg-red-500
-           rounded-[4px] border border-red-500
+    @apply inline-flex items-center justify-center px-3.5 py-2 text-sm font-medium text-white bg-red-500
+           rounded-md border border-red-500
            transition-colors duration-150
            hover:bg-red-600 hover:border-red-600
            focus:outline-none focus:ring-2 focus:ring-red-500/20;
 }
 
 .v-card {
-    @apply bg-white rounded-[6px] border border-border shadow-xs;
+    @apply bg-surface-1 rounded-lg border border-hairline shadow-xs;
+}
+
+[x-cloak] {
+    display: none !important;
 }

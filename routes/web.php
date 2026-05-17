@@ -1,74 +1,13 @@
 <?php
 
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\MemberController; // <-- 1. JANGAN LUPA IMPORT INI
-use App\Http\Controllers\OnboardingController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\ProjectController;
-use App\Http\Controllers\ProjectInvitationController;
-use App\Http\Controllers\TaskController;
-use App\Http\Controllers\TenantRegistrationController;
-use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboardController;
-use App\Http\Controllers\SuperAdmin\TenantApprovalController;
-use App\Http\Controllers\SuperAdmin\UserApprovalController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect()->route('login');
 });
 
-// GRUP 1: Ruang Tunggu & Setup (Hanya butuh Auth dasar)
-Route::middleware('auth')->group(function () {
-    // Ruang tunggu & Form Perusahaan
-    Route::get('/onboarding', [OnboardingController::class, 'index'])->name('onboarding.index');
-    Route::get('/register-company', [TenantRegistrationController::class, 'create'])->name('tenants.register');
-    Route::post('/register-company', [TenantRegistrationController::class, 'store'])->name('tenants.store');
-
-    // Profile (User pending masih boleh edit profile/password)
-    Route::get('/profile', [ProfileController::class , 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class , 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class , 'destroy'])->name('profile.destroy');
-});
-
-// GRUP 2: Aplikasi Utama (Butuh Auth DAN Lolos Middleware 'tenant.active')
-Route::middleware(['auth', 'tenant.active'])->group(function () {
-    // Dashboard
-    Route::get('/dashboard', [DashboardController::class , 'index'])->name('dashboard');
-
-    // Members (Manajemen Karyawan oleh PIC) <-- 2. TAMBAHKAN DISINI
-    Route::resource('members', MemberController::class)->except(['show', 'edit', 'update']);
-
-    // Invitations
-    Route::get('/invitations', [ProjectInvitationController::class, 'index'])->name('invitations.index');
-    Route::patch('/invitations/{invitation}/accept', [ProjectInvitationController::class, 'accept'])->name('invitations.accept');
-    Route::patch('/invitations/{invitation}/decline', [ProjectInvitationController::class, 'decline'])->name('invitations.decline');
-
-    // Projects
-    Route::resource('projects', ProjectController::class);
-
-    // Tasks (nested under projects)
-    Route::resource('projects.tasks', TaskController::class)->except(['index', 'show']);
-    Route::patch('projects/{project}/tasks/{task}/status', [TaskController::class , 'updateStatus'])
-        ->name('projects.tasks.status');
-        
-    // Kanban Board Drag and Drop Stage <-- 3. TAMBAHKAN DISINI
-    Route::patch('projects/{project}/tasks/{task}/stage', [TaskController::class, 'updateStage'])
-        ->name('projects.tasks.stage');
-});
-
-// GRUP 3: Akses Super Admin
-Route::middleware(['auth', 'superadmin'])
-    ->prefix('superadmin')
-    ->name('superadmin.')
-    ->group(function () {
-        Route::get('/dashboard', [SuperAdminDashboardController::class, 'index'])->name('dashboard');
-        Route::get('/tenants', [TenantApprovalController::class, 'index'])->name('tenants.index');
-        Route::get('/tenants/{tenant}', [TenantApprovalController::class, 'show'])->name('tenants.show');
-        Route::patch('/tenants/{tenant}', [TenantApprovalController::class, 'update'])->name('tenants.update');
-
-        // Custom Endpoint untuk approval user
-        Route::patch('/users/{user}/approval', [UserApprovalController::class, 'process'])
-            ->name('users.approval');
-    });
+require __DIR__ . '/superadmin.php';
+require __DIR__ . '/tenant.php';
+require __DIR__ . '/user.php';
 
 require __DIR__ . '/auth.php';

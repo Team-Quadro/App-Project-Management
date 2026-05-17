@@ -13,27 +13,30 @@ class EnsureTenantActive
     {
         $user = $request->user();
 
-        // 1. Kalau belum login, atau dia Super Admin, silakan lewat.
-        if (! $user || $user->isSuperAdmin()) {
+        if (! $user) {
             return $next($request);
         }
 
-        // 2. CEK RUANG TUNGGU: Belum punya tenant ATAU masih pending approval
-        if (! $user->tenant_id || $user->approval_status === 'pending') {
-            // Jangan di-logout! Arahkan ke Ruang Tunggu
-            return redirect()->route('onboarding.index');
+        if ($user->isSuperAdmin()) {
+            return $next($request);
         }
 
-        // 3. CEK STATUS PERUSAHAAN (TENANT)
+        if (! $user->tenant_id) {
+            auth()->logout();
+
+            return redirect()->route('login')
+                ->with('error', 'Your account is not linked to a tenant. Contact support.');
+        }
+
         $tenant = $user->tenant()->first();
 
         if (! $tenant || $tenant->status !== Tenant::STATUS_APPROVED) {
-            // Kalau perusahaannya diblokir/tidak aktif, kurung juga di onboarding
-            return redirect()->route('onboarding.index')
-                ->with('error', 'Perusahaan/Workspace Anda sedang tidak aktif. Hubungi Super Admin.');
+            auth()->logout();
+
+            return redirect()->route('login')
+                ->with('error', 'Your tenant is not active. Contact the holding administrator.');
         }
 
-        // Kalau lolos semua syarat, silakan masuk ke Dashboard
         return $next($request);
     }
 }
