@@ -124,3 +124,7 @@
 .v-card {
     @apply bg-surface-1 rounded-lg border border-hairline shadow-xs;
 }
+
+[x-cloak] {
+    display: none !important;
+}

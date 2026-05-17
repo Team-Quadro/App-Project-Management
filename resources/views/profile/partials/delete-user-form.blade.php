@@ -1,28 +1,28 @@
 <section class="space-y-4">
     <header>
-        <h2 class="text-[14px] font-medium text-gray-900">
+        <h2 class="text-[14px] font-medium text-ink">
             {{ __('Delete Account') }}
         </h2>
-        <p class="mt-1 text-[12px] text-gray-500">
+        <p class="mt-1 text-[12px] text-ink-subtle">
             {{ __('Once your account is deleted, all of its resources and data will be permanently deleted. Before deleting your account, please download any data or information that you wish to retain.') }}
         </p>
     </header>
 
-    <x-danger-button
+    <button type="button" class="v-btn-danger"
         x-data=""
         x-on:click.prevent="$dispatch('open-modal', 'confirm-user-deletion')"
-    >{{ __('Delete Account') }}</x-danger-button>
+    >{{ __('Delete Account') }}</button>
 
     <x-modal name="confirm-user-deletion" :show="$errors->userDeletion->isNotEmpty()" focusable>
         <form method="post" action="{{ route('profile.destroy') }}" class="p-5">
             @csrf
             @method('delete')
 
-            <h2 class="text-[14px] font-medium text-gray-900">
+            <h2 class="text-[14px] font-medium text-ink">
                 {{ __('Are you sure you want to delete your account?') }}
             </h2>
 
-            <p class="mt-1 text-[12px] text-gray-500">
+            <p class="mt-1 text-[12px] text-ink-subtle">
                 {{ __('Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.') }}
             </p>
 
@@ -39,13 +39,13 @@
             </div>
 
             <div class="mt-5 flex justify-end gap-2">
-                <x-secondary-button x-on:click="$dispatch('close')">
+                <button type="button" class="v-btn-secondary" x-on:click="$dispatch('close')">
                     {{ __('Cancel') }}
-                </x-secondary-button>
+                </button>
 
-                <x-danger-button class="ms-0">
+                <button type="submit" class="v-btn-danger ms-0">
                     {{ __('Delete Account') }}
-                </x-danger-button>
+                </button>
             </div>
         </form>
     </x-modal>

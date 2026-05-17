@@ -1,31 +1,32 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Livewire;
 
+use Livewire\Component;
+use Livewire\Attributes\Layout;
 use App\Services\DashboardService;
-use Illuminate\Http\Request;
+use App\Models\User;
+use App\Models\Task;
 
-class DashboardController extends Controller
+#[Layout('layouts.app')]
+#[\Livewire\Attributes\Title('Dashboard')]
+class Dashboard extends Component
 {
-    public function __construct(
-        private readonly DashboardService $dashboardService,
-    ) {}
-
-    public function index(Request $request)
+    public function render(DashboardService $dashboardService)
     {
-        $user = $request->user();
-        $data = $this->dashboardService->getSummary($request->user());
+        $user = auth()->user();
+        $data = $dashboardService->getSummary($user);
 
         $teamWorkload = collect();
         if ($user->isCompanyAdmin() && $user->tenant_id) {
-            $teamWorkload = \App\Models\User::where('tenant_id', $user->tenant_id)
+            $teamWorkload = User::where('tenant_id', $user->tenant_id)
                 ->withCount([
                     'assignedTasks as total_tasks',
                     'assignedTasks as active_tasks' => function ($query) {
-                        $query->where('status', '!=', \App\Models\Task::STATUS_DONE);
+                        $query->where('status', '!=', Task::STATUS_DONE);
                     },
                     'assignedTasks as completed_tasks' => function ($query) {
-                        $query->where('status', \App\Models\Task::STATUS_DONE);
+                        $query->where('status', Task::STATUS_DONE);
                     }
                 ])
                 ->get()
@@ -43,7 +44,7 @@ class DashboardController extends Controller
                 });
         }
 
-        return view('dashboard', [
+        return view('livewire.dashboard', [
             'tenant' => $user->tenant,
             'stats' => [
                 'total_projects'    => $data['projectCount'],
