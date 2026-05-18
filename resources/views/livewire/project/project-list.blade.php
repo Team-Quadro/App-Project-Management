@@ -16,33 +16,33 @@
                     class="v-input pl-9 bg-canvas" />
             </div>
             <div x-data="{ open: false }" class="relative shrink-0">
-                <button @click="open = !open" class="flex items-center justify-between w-36 px-3 py-1.5 rounded-md text-[13px] font-medium border transition-colors duration-100
-                    {{ $status ? 'bg-primary/10 border-primary/30 text-primary' : 'bg-surface-2 border-hairline text-ink-subtle hover:text-ink' }}">
-                    <span class="truncate">{{ $status ? ucfirst($status) : 'Semua Status' }}</span>
+                <button @click="open = !open" class="flex items-center justify-between w-48 px-3 py-1.5 rounded-md text-[13px] font-medium border transition-colors duration-100
+                    {{ $stage ? 'bg-primary/10 border-primary/30 text-primary' : 'bg-surface-2 border-hairline text-ink-subtle hover:text-ink' }}">
+                    <span class="truncate">{{ $stage ? (\App\Models\Project::STAGES[$stage] ?? ucfirst($stage)) : 'Semua Stage' }}</span>
                     <svg class="w-3 h-3 shrink-0 transition-transform duration-150" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
                 </button>
 
                 <div x-show="open" @click.away="open = false" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
                      x-transition:leave="transition ease-in duration-75" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                     class="absolute left-0 mt-1 w-36 bg-surface-1 border border-hairline rounded-lg shadow-xl z-50 py-1 overflow-hidden" x-cloak>
-                    <button type="button" wire:click="$set('status', '')" @click="open = false" class="w-full flex items-center justify-between px-3 py-2 text-[13px] text-left transition-colors duration-100 {{ !$status ? 'bg-primary/10 text-primary font-medium' : 'text-ink-subtle hover:bg-surface-2 hover:text-ink' }}">
-                        Semua Status
-                        @if(!$status)
+                     class="absolute left-0 mt-1 w-48 bg-surface-1 border border-hairline rounded-lg shadow-xl z-50 py-1 overflow-hidden" x-cloak>
+                    <button type="button" wire:click="$set('stage', '')" @click="open = false" class="w-full flex items-center justify-between px-3 py-2 text-[13px] text-left transition-colors duration-100 {{ !$stage ? 'bg-primary/10 text-primary font-medium' : 'text-ink-subtle hover:bg-surface-2 hover:text-ink' }}">
+                        Semua Stage
+                        @if(!$stage)
                         <svg class="w-3 h-3 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                         @endif
                     </button>
-                    @foreach (\App\Models\Project::STATUSES as $s)
-                    <button type="button" wire:click="$set('status', '{{ $s }}')" @click="open = false" class="w-full flex items-center justify-between px-3 py-2 text-[13px] text-left transition-colors duration-100 {{ $status === $s ? 'bg-primary/10 text-primary font-medium' : 'text-ink-subtle hover:bg-surface-2 hover:text-ink' }}">
-                        {{ ucfirst($s) }}
-                        @if($status === $s)
+                    @foreach (\App\Models\Project::STAGES as $key => $label)
+                    <button type="button" wire:click="$set('stage', '{{ $key }}')" @click="open = false" class="w-full flex items-center justify-between px-3 py-2 text-[13px] text-left transition-colors duration-100 {{ $stage === $key ? 'bg-primary/10 text-primary font-medium' : 'text-ink-subtle hover:bg-surface-2 hover:text-ink' }}">
+                        {{ $label }}
+                        @if($stage === $key)
                         <svg class="w-3 h-3 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                         @endif
                     </button>
                     @endforeach
                 </div>
             </div>
-            @if ($search || $status)
-            <button wire:click="$set('search', ''); $set('status', '')" class="text-[13px] text-ink-subtle hover:text-ink transition-colors px-2">Bersihkan</button>
+            @if ($search || $stage)
+            <button wire:click="$set('search', ''); $set('stage', '')" class="text-[13px] text-ink-subtle hover:text-ink transition-colors px-2">Bersihkan</button>
             @endif
 
             {{-- Superadmin subsidiary switcher inside Project List Filter --}}
@@ -114,7 +114,7 @@
                 <thead>
                     <tr class="text-left border-b border-hairline text-ink-subtle text-[12px] uppercase tracking-wider">
                         <th class="py-3 px-4 font-medium w-1/3">Proyek</th>
-                        <th class="py-3 px-4 font-medium">Status</th>
+                        <th class="py-3 px-4 font-medium">Stage</th>
                         <th class="py-3 px-4 font-medium">Pemilik</th>
                         <th class="py-3 px-4 font-medium">Tugas</th>
                         <th class="py-3 px-4 font-medium">Tenggat Waktu</th>
@@ -133,7 +133,7 @@
                             </div>
                         </td>
                         <td class="py-3 px-4">
-                            <x-badge :variant="$project->status" size="xs">{{ ucfirst($project->status) }}</x-badge>
+                            <x-badge :variant="$project->stage" size="xs">{{ $project->stage_label }}</x-badge>
                         </td>
                         <td class="py-3 px-4">
                             <div class="flex items-center gap-2">

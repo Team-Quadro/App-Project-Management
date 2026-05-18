@@ -16,35 +16,48 @@ class ProjectPolicy
     }
 
     /**
-     * Admin can view any project; member only if owner or member.
+     * SuperAdmin can view any project; PIC and Member only if owner or member.
      */
     public function view(User $user, Project $project): bool
     {
-        return $user->isAdmin() || $this->isParticipant($user, $project);
+        return $user->isSuperAdmin() || $this->isParticipant($user, $project);
     }
 
     /**
-     * Any authenticated user can create projects.
+     * Only SuperAdmin and PIC can create projects.
      */
     public function create(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->isSuperAdmin() || $user->isCompanyAdmin();
     }
 
     /**
-     * Admin can update any; member can update own projects.
+     * Only SuperAdmin or the project's owner (PIC) can update project details.
+     * Regular members (karyawan) cannot edit project metadata.
      */
     public function update(User $user, Project $project): bool
     {
-        return $user->isAdmin();
+        return $user->isSuperAdmin()
+            || ($user->isCompanyAdmin() && $project->owner_id === $user->id);
     }
 
     /**
-     * Admin can delete any; only owner can delete their project.
+     * Only SuperAdmin or the project owner can delete a project.
      */
     public function delete(User $user, Project $project): bool
     {
-        return $user->isAdmin();
+        return $user->isSuperAdmin()
+            || ($user->isCompanyAdmin() && $project->owner_id === $user->id);
+    }
+
+    /**
+     * Can the user manage tasks within this project?
+     * Any project participant (owner OR member, regardless of role) can
+     * create / update / move tasks. This is separate from editing project metadata.
+     */
+    public function updateTasks(User $user, Project $project): bool
+    {
+        return $user->isSuperAdmin() || $this->isParticipant($user, $project);
     }
 
     /**

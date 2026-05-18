@@ -15,6 +15,7 @@ class CreateProject extends Component
     public $title = '';
     public $description = '';
     public $status = 'active';
+    public $stage = 'approach_lead_client';
     public $deadline = '';
     public $member_ids = [];
 
@@ -24,6 +25,7 @@ class CreateProject extends Component
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'status' => 'required|in:' . implode(',', \App\Models\Project::STATUSES),
+            'stage' => 'required|in:' . implode(',', array_keys(\App\Models\Project::STAGES)),
             'deadline' => 'nullable|date',
             'member_ids' => 'array',
             'member_ids.*' => 'exists:users,id',

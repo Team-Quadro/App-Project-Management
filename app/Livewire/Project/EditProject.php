@@ -18,6 +18,7 @@ class EditProject extends Component
     public $title = '';
     public $description = '';
     public $status = '';
+    public $stage = '';
     public $deadline = '';
     public $member_ids = [];
 
@@ -28,6 +29,7 @@ class EditProject extends Component
         $this->title = $project->title;
         $this->description = $project->description ?? '';
         $this->status = $project->status;
+        $this->stage = $project->stage ?? Project::STAGE_APPROACH;
         $this->deadline = $project->deadline?->format('Y-m-d') ?? '';
         $this->member_ids = $project->members->pluck('id')->toArray();
     }
@@ -40,11 +42,12 @@ class EditProject extends Component
     protected function rules()
     {
         return [
-            'title' => 'required|string|max:255',
+            'title'       => 'required|string|max:255',
             'description' => 'nullable|string',
-            'status' => 'required|in:' . implode(',', Project::STATUSES),
-            'deadline' => 'nullable|date',
-            'member_ids' => 'array',
+            'status'      => 'required|in:' . implode(',', Project::STATUSES),
+            'stage'       => 'required|in:' . implode(',', array_keys(Project::STAGES)),
+            'deadline'    => 'nullable|date',
+            'member_ids'  => 'array',
             'member_ids.*' => 'exists:users,id',
         ];
     }

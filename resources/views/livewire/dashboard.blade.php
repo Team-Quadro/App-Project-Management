@@ -58,7 +58,7 @@
                             <p class="text-[13px] font-medium text-ink group-hover:text-primary transition-colors truncate">{{ $project->title }}</p>
                             <p class="text-[11px] text-ink-subtle">{{ $project->tasks_count }} tugas</p>
                         </div>
-                        <x-badge :variant="$project->status" size="xs">{{ ucfirst($project->status) }}</x-badge>
+                        <x-badge :variant="$project->stage" size="xs">{{ $project->stage_label }}</x-badge>
                     </a>
                     @empty
                     <div class="px-5 py-8 text-center text-[13px] text-ink-subtle">Belum ada proyek.</div>

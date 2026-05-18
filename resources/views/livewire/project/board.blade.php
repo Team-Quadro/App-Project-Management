@@ -15,7 +15,35 @@
                 <div>
                     <div class="flex items-center gap-3">
                         <h1 class="text-2xl font-semibold text-ink tracking-tight">{{ $project->title }}</h1>
-                        <x-badge :variant="$project->status">{{ ucfirst(str_replace('_',' ',$project->status)) }}</x-badge>
+                        @can('update', $project)
+                        {{-- Interactive Stage Switcher for PIC / Superadmin --}}
+                        <div x-data="{ open: false }" class="relative shrink-0">
+                            <button @click="open = !open" class="flex items-center gap-1.5 px-2 py-0.5 rounded-[3px] text-[11px] font-[510] border transition-colors duration-100
+                                @php
+                                    $colors = \App\Models\Project::STAGE_COLORS[$project->stage] ?? ['bg' => 'bg-surface-3', 'text' => 'text-ink-subtle', 'border' => 'border-hairline'];
+                                    echo "{$colors['bg']} {$colors['text']} {$colors['border']}";
+                                @endphp">
+                                <span>{{ $project->stage_label }}</span>
+                                <svg class="w-3 h-3 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+
+                            <div x-show="open" @click.away="open = false" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                                 x-transition:leave="transition ease-in duration-75" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                                 class="absolute left-0 mt-1 w-48 bg-surface-1 border border-hairline rounded-lg shadow-xl z-50 py-1 overflow-hidden" x-cloak>
+                                @foreach (\App\Models\Project::STAGES as $key => $label)
+                                <button type="button" wire:click="updateProjectStage('{{ $key }}')" @click="open = false" class="w-full flex items-center justify-between px-3 py-2 text-[11px] text-left transition-colors duration-100 {{ $project->stage === $key ? 'bg-primary/10 text-primary font-medium' : 'text-ink-subtle hover:bg-surface-2 hover:text-ink' }}">
+                                    {{ $label }}
+                                    @if($project->stage === $key)
+                                    <svg class="w-3 h-3 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                    @endif
+                                </button>
+                                @endforeach
+                            </div>
+                        </div>
+                        @else
+                        {{-- Static Badge for Karyawan/Regular Member --}}
+                        <x-badge :variant="$project->stage">{{ $project->stage_label }}</x-badge>
+                        @endcan
                     </div>
                     @if($project->description)
                         <p class="text-[14px] text-ink-subtle mt-1.5 max-w-3xl">{{ $project->description }}</p>
@@ -57,7 +85,7 @@
                     @endforeach
                 </select>
             </div>
-            @can('update', $project)
+            @can('updateTasks', $project)
             <button wire:click="$set('addingTaskGroup', '__top__')" class="v-btn-primary text-[13px] px-3 py-1.5 gap-1.5 shrink-0">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 Tambah Tugas
@@ -78,7 +106,7 @@
             </div>
 
             {{-- Quick Add Task (from toolbar button) --}}
-            @can('update', $project)
+            @can('updateTasks', $project)
             @if($addingTaskGroup === '__top__')
             <div class="px-6 py-2 border-b border-hairline bg-surface-1/30">
                 <form wire:submit="addTask('{{ $workflowStages->first()?->key ?? 'todo' }}', {{ $workflowStages->first()?->id ?? 'null' }})" class="grid grid-cols-[1fr_140px_100px_120px_90px_70px] gap-3 items-center m-0">
@@ -206,7 +234,7 @@
                     @endforeach
 
                     {{-- Inline Add Task --}}
-                    @can('update', $project)
+                    @can('updateTasks', $project)
                     @if($addingTaskGroup !== $stage->key)
                     <div wire:click="$set('addingTaskGroup', '{{ $stage->key }}')" class="flex items-center gap-3 py-2 pl-7 text-[13px] text-ink-muted hover:text-ink-subtle cursor-pointer transition-colors">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>

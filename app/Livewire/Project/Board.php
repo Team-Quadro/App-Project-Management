@@ -87,7 +87,7 @@ class Board extends Component
     
     public function addTask($stageKey, $stageId)
     {
-        $this->authorize('update', $this->project);
+        $this->authorize('updateTasks', $this->project);
         
         $this->validate([
             'newTaskTitle' => 'required|string|max:255',
@@ -159,7 +159,7 @@ class Board extends Component
     public function updateTask()
     {
         if (!$this->editingTask) return;
-        $this->authorize('update', $this->project);
+        $this->authorize('updateTasks', $this->project);
         
         $this->editingTask->update([
             'title' => $this->editingTaskTitle,
@@ -211,7 +211,7 @@ class Board extends Component
     #[\Livewire\Attributes\On('taskMoved')]
     public function handleTaskMoved($taskId, $newStageId = null)
     {
-        $this->authorize('update', $this->project);
+        $this->authorize('updateTasks', $this->project);
         
         $task = Task::find($taskId);
         
@@ -236,12 +236,27 @@ class Board extends Component
     #[\Livewire\Attributes\On('sectionReordered')]
     public function handleSectionReordered($orderedIds)
     {
-        $this->authorize('update', $this->project);
+        $this->authorize('update', $this->project); // Only PIC/owner can reorder sections
         
         foreach ($orderedIds as $index => $stageId) {
             WorkflowStage::withoutGlobalScopes()
                 ->where('id', $stageId)
                 ->update(['sort_order' => $index + 1]);
         }
+    }
+
+    public function updateProjectStage($newStage)
+    {
+        $this->authorize('update', $this->project);
+        
+        if (!array_key_exists($newStage, Project::STAGES)) {
+            return;
+        }
+
+        $this->project->update([
+            'stage' => $newStage,
+        ]);
+
+        session()->flash('success', 'Stage proyek berhasil diperbarui.');
     }
 }

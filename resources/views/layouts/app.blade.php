@@ -46,6 +46,11 @@
                             Pengguna
                         </a>
                     @endif
+                    <a href="{{ route('my-tasks.index') }}" wire:navigate
+                       class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] font-medium transition-colors duration-100 {{ request()->routeIs('my-tasks.*') ? 'bg-surface-2 text-ink' : 'text-ink-subtle hover:bg-surface-2 hover:text-ink' }}">
+                        <x-heroicon-o-clipboard-document-check class="w-4 h-4 {{ request()->routeIs('my-tasks.*') ? 'text-primary' : 'text-ink-tertiary' }}" />
+                        Tugas Saya
+                    </a>
                     <a href="{{ route('projects.index') }}" wire:navigate
                        class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] font-medium transition-colors duration-100 {{ request()->routeIs('projects.*') ? 'bg-surface-2 text-ink' : 'text-ink-subtle hover:bg-surface-2 hover:text-ink' }}">
                         <x-heroicon-o-folder class="w-4 h-4 {{ request()->routeIs('projects.*') ? 'text-primary' : 'text-ink-tertiary' }}" />

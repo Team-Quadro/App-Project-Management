@@ -81,6 +81,7 @@ class DatabaseSeeder extends Seeder
             'title' => 'Company Website Redesign',
             'description' => 'Complete overhaul of the company website including new branding, responsive design, and improved UX.',
             'status' => 'active',
+            'stage' => 'project_progress',
             'owner_id' => $admin->id,
             'deadline' => now()->addMonths(2),
         ]);
@@ -94,6 +95,7 @@ class DatabaseSeeder extends Seeder
             'title' => 'Mobile App Development',
             'description' => 'Build a cross-platform mobile application for customer self-service portal.',
             'status' => 'active',
+            'stage' => 'proposal',
             'owner_id' => $joko->id,
             'deadline' => now()->addMonths(3),
         ]);
@@ -107,6 +109,7 @@ class DatabaseSeeder extends Seeder
             'title' => 'API Integration',
             'description' => 'Integrate third-party payment and logistics APIs into the existing system.',
             'status' => 'active',
+            'stage' => 'approach_lead_client',
             'owner_id' => $prabo->id,
             'deadline' => now()->addMonth(),
         ]);
@@ -119,6 +122,7 @@ class DatabaseSeeder extends Seeder
             'title' => 'Legacy System Migration',
             'description' => 'Migrate data and features from the old PHP system to the new Laravel platform.',
             'status' => 'completed',
+            'stage' => 'project_handover',
             'owner_id' => $admin->id,
             'deadline' => now()->subWeek(),
         ]);
@@ -131,6 +135,7 @@ class DatabaseSeeder extends Seeder
             'title' => 'Internal Documentation',
             'description' => 'Create and maintain internal technical documentation and developer guides.',
             'status' => 'archived',
+            'stage' => 'hold_billing',
             'owner_id' => $gibrun->id,
             'deadline' => null,
         ]);
