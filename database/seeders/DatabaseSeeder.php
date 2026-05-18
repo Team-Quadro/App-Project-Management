@@ -26,7 +26,7 @@ class DatabaseSeeder extends Seeder
             'status' => Tenant::STATUS_APPROVED,
             'approved_at' => now(),
         ]);
-
+        // Superadmin 1
         User::create([
             'name' => 'Super Admin',
             'email' => 'superadmin@example.com',
@@ -35,6 +35,16 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
+        // Superadmin 2
+        User::create([
+            'name' => 'Super Admin 2',
+            'email' => 'superadmin2@example.com',
+            'password' => bcrypt('superadmin321'),
+            'role' => 'superadmin',
+            'is_active' => true,
+        ]);
+
+        // Admin Perusahaan
         $admin = User::create([
             'name' => 'Administrator',
             'email' => 'admin@example.com',
@@ -49,6 +59,7 @@ class DatabaseSeeder extends Seeder
             'approved_by' => $admin->id,
         ]);
 
+        // Member 1
         $joko = User::create([
             'name' => 'Joko Wi',
             'email' => 'jokogemink@example.com',
@@ -58,6 +69,7 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
+        // Member 2
         $prabo = User::create([
             'name' => 'Prabo Wo',
             'email' => 'prabogemink@example.com',
@@ -67,6 +79,7 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
+        // Member 3
         $gibrun = User::create([
             'name' => 'Gib Run',
             'email' => 'gibrun@example.com',
