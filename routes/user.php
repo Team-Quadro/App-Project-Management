@@ -14,6 +14,8 @@ Route::middleware(['auth', 'verified', 'user.active', 'tenant.active'])->group(f
     // Dashboard
     Route::get('/dashboard', \App\Livewire\Dashboard::class)->name('dashboard');
 
+    // My Tasks
+    Route::get('/my-tasks', \App\Livewire\MyTasks::class)->name('my-tasks.index');
     // Projects
     Route::get('projects', \App\Livewire\Project\ProjectList::class)->name('projects.index');
     Route::get('projects/create', \App\Livewire\Project\CreateProject::class)->name('projects.create');

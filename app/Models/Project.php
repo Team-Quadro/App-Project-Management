@@ -20,6 +20,7 @@ class Project extends Model
         'title',
         'description',
         'status',
+        'stage',
         'owner_id',
         'deadline',
     ];
@@ -32,12 +33,12 @@ class Project extends Model
     }
 
     /* --------------------------------------------------------
-     | Constants
+     | Constants — Legacy project status (kept for compat)
      | -------------------------------------------------------- */
 
-    public const STATUS_ACTIVE = 'active';
+    public const STATUS_ACTIVE    = 'active';
     public const STATUS_COMPLETED = 'completed';
-    public const STATUS_ARCHIVED = 'archived';
+    public const STATUS_ARCHIVED  = 'archived';
 
     public const STATUSES = [
         self::STATUS_ACTIVE,
@@ -46,12 +47,49 @@ class Project extends Model
     ];
 
     /* --------------------------------------------------------
+     | Constants — Project Stages (new sales/delivery pipeline)
+     | -------------------------------------------------------- */
+
+    public const STAGE_APPROACH     = 'approach_lead_client';
+    public const STAGE_PROPOSAL     = 'proposal';
+    public const STAGE_HOLD_BILLING = 'hold_billing';
+    public const STAGE_PROGRESS     = 'project_progress';
+    public const STAGE_HANDOVER     = 'project_handover';
+
+    public const STAGES = [
+        self::STAGE_APPROACH     => 'Approach & Lead Client',
+        self::STAGE_PROPOSAL     => 'Proposal',
+        self::STAGE_HOLD_BILLING => 'Hold & Billing',
+        self::STAGE_PROGRESS     => 'Project Progress',
+        self::STAGE_HANDOVER     => 'Project Handover',
+    ];
+
+    /**
+     * Stage badge color tokens (Tailwind classes).
+     */
+    public const STAGE_COLORS = [
+        self::STAGE_APPROACH     => ['bg' => 'bg-blue-500/15',   'text' => 'text-blue-400',   'border' => 'border-blue-500/20'],
+        self::STAGE_PROPOSAL     => ['bg' => 'bg-violet-500/15', 'text' => 'text-violet-400', 'border' => 'border-violet-500/20'],
+        self::STAGE_HOLD_BILLING => ['bg' => 'bg-yellow-500/15', 'text' => 'text-yellow-400', 'border' => 'border-yellow-500/20'],
+        self::STAGE_PROGRESS     => ['bg' => 'bg-emerald-500/15','text' => 'text-emerald-400','border' => 'border-emerald-500/20'],
+        self::STAGE_HANDOVER     => ['bg' => 'bg-surface-3',     'text' => 'text-ink-subtle',  'border' => 'border-hairline'],
+    ];
+
+    /**
+     * Get the human-readable label for the current stage.
+     */
+    public function getStageLabelAttribute(): string
+    {
+        return self::STAGES[$this->stage] ?? ucfirst(str_replace('_', ' ', $this->stage));
+    }
+
+    /* --------------------------------------------------------
      | Relationships
      | -------------------------------------------------------- */
 
     public function owner(): BelongsTo
     {
-        return $this->belongsTo(User::class , 'owner_id');
+        return $this->belongsTo(User::class, 'owner_id');
     }
 
     public function tenant(): BelongsTo
@@ -61,7 +99,7 @@ class Project extends Model
 
     public function members(): BelongsToMany
     {
-        return $this->belongsToMany(User::class , 'project_members')
+        return $this->belongsToMany(User::class, 'project_members')
             ->withPivot('tenant_id')
             ->withTimestamps();
     }
@@ -72,7 +110,6 @@ class Project extends Model
     }
 
     // Stages are now global per-tenant, not per-project.
-    // This relationship is kept for backward compatibility.
     public function stages(): HasMany
     {
         return $this->hasMany(WorkflowStage::class)->orderBy('sort_order')->orderBy('id');
@@ -94,12 +131,9 @@ class Project extends Model
      | Query Scopes
      | -------------------------------------------------------- */
 
-    /**
-     * Scope: projects accessible by a given user (owned or member).
-     */
     public function scopeAccessibleBy(Builder $query, User $user): Builder
     {
-        if ($user->isAdmin()) {
+        if ($user->isSuperAdmin() || $user->isCompanyAdmin()) {
             return $query;
         }
 
@@ -107,9 +141,6 @@ class Project extends Model
             ->orWhereHas('members', fn(Builder $q) => $q->where('users.id', $user->id));
     }
 
-    /**
-     * Scope: search projects by title or description.
-     */
     public function scopeSearch(Builder $query, ?string $term): Builder
     {
         if (blank($term)) {
@@ -122,9 +153,6 @@ class Project extends Model
         });
     }
 
-    /**
-     * Scope: filter by status.
-     */
     public function scopeFilterStatus(Builder $query, ?string $status): Builder
     {
         if (blank($status)) {
@@ -132,5 +160,14 @@ class Project extends Model
         }
 
         return $query->where('status', $status);
+    }
+
+    public function scopeFilterStage(Builder $query, ?string $stage): Builder
+    {
+        if (blank($stage)) {
+            return $query;
+        }
+
+        return $query->where('stage', $stage);
     }
 }

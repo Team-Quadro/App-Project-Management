@@ -14,14 +14,14 @@ class ProjectList extends Component
     use WithPagination;
 
     public $search = '';
-    public $status = '';
+    public $stage = '';
 
     public function updatingSearch()
     {
         $this->resetPage();
     }
 
-    public function updatingStatus()
+    public function updatingStage()
     {
         $this->resetPage();
     }
@@ -43,7 +43,7 @@ class ProjectList extends Component
 
         $projectsQuery = Project::accessibleBy($user)
             ->search($this->search)
-            ->filterStatus($this->status)
+            ->filterStage($this->stage)
             ->with(['owner', 'tasks' => function ($query) {
                 // Needed to calculate done tasks in the view easily
                 $query->select('id', 'project_id', 'status');

@@ -9,7 +9,7 @@
         </div>
     </x-slot>
 
-    <div class="max-w-xl">
+    <div class="w-full">
         <div class="v-card p-5">
             <form wire:submit="save" class="space-y-4">
                 <div>
@@ -26,12 +26,27 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label for="status" class="v-label">Status</label>
-                        <select id="status" wire:model="status" class="v-select">
-                            @foreach (\App\Models\Project::STATUSES as $s)
-                            <option value="{{ $s }}">{{ ucfirst($s) }}</option>
-                            @endforeach
-                        </select>
+                        <label for="stage" class="v-label">Stage Proyek</label>
+                        <div x-data="{ open: false }" class="relative w-full">
+                            <button type="button" @click="open = !open" class="flex items-center justify-between w-full px-3 py-2 rounded-md text-[13px] border transition-colors duration-100 bg-surface-1 border-hairline text-ink hover:border-hairline-strong focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary-focus/50">
+                                <span class="truncate">{{ \App\Models\Project::STAGES[$stage] ?? 'Pilih Stage' }}</span>
+                                <svg class="w-4 h-4 shrink-0 transition-transform duration-150 text-ink-subtle" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+
+                            <div x-show="open" @click.away="open = false" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                                 x-transition:leave="transition ease-in duration-75" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                                 class="absolute left-0 mt-1 w-full bg-surface-1 border border-hairline rounded-lg shadow-xl z-50 py-1" x-cloak>
+                                @foreach (\App\Models\Project::STAGES as $key => $label)
+                                <button type="button" wire:click="$set('stage', '{{ $key }}')" @click="open = false"
+                                    class="w-full flex items-center justify-between px-3 py-2 text-[13px] text-left transition-colors {{ $stage === $key ? 'bg-primary/10 text-primary font-medium' : 'text-ink-subtle hover:bg-surface-2 hover:text-ink' }}">
+                                    {{ $label }}
+                                    @if($stage === $key)
+                                    <svg class="w-3 h-3 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                    @endif
+                                </button>
+                                @endforeach
+                            </div>
+                        </div>
                     </div>
                     <div>
                         <label for="deadline" class="v-label">Tenggat Waktu</label>

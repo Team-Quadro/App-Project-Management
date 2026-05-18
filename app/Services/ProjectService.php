@@ -33,6 +33,7 @@ class ProjectService
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
             'status' => $data['status'] ?? Project::STATUS_ACTIVE,
+            'stage' => $data['stage'] ?? Project::STAGE_APPROACH,
             'owner_id' => $owner->id,
             'deadline' => $data['deadline'] ?? null,
         ]);
@@ -84,6 +85,7 @@ class ProjectService
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
             'status' => $data['status'] ?? $project->status,
+            'stage' => $data['stage'] ?? $project->stage,
             'deadline' => $data['deadline'] ?? null,
         ]);
 
