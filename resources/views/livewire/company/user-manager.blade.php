@@ -89,21 +89,31 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-4 py-3 text-[13px] text-ink-subtle">{{ $member->job_title ?? '—' }}</td>
+                            <td class="px-4 py-3 text-[13px] text-ink-subtle">{{ $member->job_title ?: '—' }}</td>
                             <td class="px-4 py-3">
                                 <span class="text-[11px] font-medium px-2 py-0.5 rounded-full {{ $member->role === 'pic' ? 'bg-primary/15 text-primary' : 'bg-surface-3 text-ink-subtle' }}">
-                                    {{ $member->role_label }}
+                                    {{ $member->role_label ?? ucfirst($member->role) }}
                                 </span>
                             </td>
                             <td class="px-4 py-3">
-                                @if($member->is_active)
-                                <span class="inline-flex items-center gap-1 text-[11px] text-green-400">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span> Aktif
-                                </span>
+                                @if($member->approval_status === 'pending')
+                                    <span class="inline-flex items-center gap-1 text-[11px] text-yellow-500">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span> Menunggu
+                                    </span>
+                                @elseif($member->approval_status === 'rejected')
+                                    <span class="inline-flex items-center gap-1 text-[11px] text-red-500">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Ditolak
+                                    </span>
                                 @else
-                                <span class="inline-flex items-center gap-1 text-[11px] text-ink-muted">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-ink-muted"></span> Tidak Aktif
-                                </span>
+                                    @if($member->is_active)
+                                    <span class="inline-flex items-center gap-1 text-[11px] text-green-400">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span> Aktif
+                                    </span>
+                                    @else
+                                    <span class="inline-flex items-center gap-1 text-[11px] text-ink-muted">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-ink-muted"></span> Tidak Aktif
+                                    </span>
+                                    @endif
                                 @endif
                             </td>
                             <td class="px-4 py-3">
@@ -134,30 +144,5 @@
             </div>
         </div>
 
-        {{-- Pending Join Requests --}}
-        @if($requests->isNotEmpty())
-        <div>
-            <h3 class="text-[14px] font-semibold text-ink mb-3">Permintaan Bergabung Menunggu Persetujuan</h3>
-            <div class="grid gap-3">
-                @foreach($requests as $request)
-                <div class="v-card p-4 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full bg-amber-500/20 text-amber-500 flex items-center justify-center text-[12px] font-bold">
-                            {{ strtoupper(substr($request->user->name, 0, 1)) }}
-                        </div>
-                        <div>
-                            <p class="text-[13px] font-medium text-ink">{{ $request->user->name }}</p>
-                            <p class="text-[11px] text-ink-muted">{{ $request->user->email }} · Diminta {{ $request->created_at->diffForHumans() }}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button wire:click="rejectRequest({{ $request->id }})" class="v-btn-secondary text-[12px] px-3 py-1.5 hover:text-red-500 hover:border-red-500/30">Tolak</button>
-                        <button wire:click="approveRequest({{ $request->id }})" class="v-btn-primary text-[12px] px-3 py-1.5">Setujui</button>
-                    </div>
-                </div>
-                @endforeach
-            </div>
-        </div>
-        @endif
     </div>
 </div>

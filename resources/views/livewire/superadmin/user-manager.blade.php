@@ -49,16 +49,49 @@
 
         <div class="v-card overflow-hidden">
             <table class="min-w-full text-sm"><thead><tr class="text-left border-b border-hairline text-ink-subtle text-[12px] uppercase tracking-wider"><th class="py-3 px-4 font-medium">Nama</th><th class="py-3 px-4 font-medium">Email</th><th class="py-3 px-4 font-medium">Peran</th><th class="py-3 px-4 font-medium">Perusahaan</th><th class="py-3 px-4 font-medium">Status</th><th class="py-3 px-4 text-right"></th></tr></thead>
-            <tbody class="divide-y divide-hairline">
+<tbody class="divide-y divide-hairline">
                 @foreach($users as $user)
                 <tr class="group hover:bg-surface-2/50 transition-colors" wire:key="u-{{ $user->id }}">
                     <td class="py-3 px-4 text-[13px] font-medium text-ink">{{ $user->name }}</td>
                     <td class="py-3 px-4 text-[13px] text-ink-subtle">{{ $user->email }}</td>
                     <td class="py-3 px-4"><span class="text-[11px] font-medium px-2 py-0.5 rounded-full {{ $user->role === 'superadmin' ? 'bg-primary/15 text-primary' : 'bg-surface-3 text-ink-subtle' }}">{{ ucfirst($user->role) }}</span></td>
                     <td class="py-3 px-4 text-[13px] text-ink-subtle">{{ $user->tenant?->company_name ?? '-' }}</td>
-                    <td class="py-3 px-4">@if($user->is_active)<span class="text-[11px] text-green-400">● Aktif</span>@else<span class="text-[11px] text-ink-muted">● Nonaktif</span>@endif</td>
-                    <td class="py-3 px-4"><div class="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity"><button type="button" wire:click="startEdit({{ $user->id }})" class="p-1.5 text-ink-subtle hover:text-ink hover:bg-surface-3 rounded" title="Edit"><x-heroicon-o-pencil-square class="w-4 h-4" /></button><button type="button" x-data @click="$dispatch('open-confirm-modal', { id: 'delete-user-{{ $user->id }}' })" class="p-1.5 text-ink-subtle hover:text-red-400 hover:bg-surface-3 rounded" title="Hapus"><x-heroicon-o-trash class="w-4 h-4" /></button></div>
-                    <x-confirm-modal id="delete-user-{{ $user->id }}" wireClick="deleteUser({{ $user->id }})" title="Hapus Pengguna" message="Apakah Anda yakin ingin menghapus {{ $user->name }}?" confirmText="Hapus" />
+                    
+                    <td class="py-3 px-4">
+                        @if($user->approval_status === 'pending')
+                            <span class="text-[11px] text-yellow-500">● Menunggu</span>
+                        @elseif($user->approval_status === 'rejected')
+                            <span class="text-[11px] text-red-500">● Ditolak</span>
+                        @else
+                            @if($user->is_active)
+                                <span class="text-[11px] text-green-400">● Aktif</span>
+                            @else
+                                <span class="text-[11px] text-ink-muted">● Nonaktif</span>
+                            @endif
+                        @endif
+                    </td>
+
+                    <td class="py-3 px-4">
+                        <div class="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                            
+                            @if($user->approval_status === 'pending')
+                                <button type="button" wire:click="approveUser({{ $user->id }})" class="p-1.5 text-ink-subtle hover:text-green-400 hover:bg-surface-3 rounded" title="Setujui">
+                                    <x-heroicon-o-check class="w-4 h-4" />
+                                </button>
+                                <button type="button" wire:click="rejectUser({{ $user->id }})" class="p-1.5 text-ink-subtle hover:text-red-400 hover:bg-surface-3 rounded" title="Tolak">
+                                    <x-heroicon-o-x-mark class="w-4 h-4" />
+                                </button>
+                                <div class="w-px h-4 bg-hairline my-auto mx-1"></div>
+                            @endif
+
+                            <button type="button" wire:click="startEdit({{ $user->id }})" class="p-1.5 text-ink-subtle hover:text-ink hover:bg-surface-3 rounded" title="Edit">
+                                <x-heroicon-o-pencil-square class="w-4 h-4" />
+                            </button>
+                            <button type="button" x-data @click="$dispatch('open-confirm-modal', { id: 'delete-user-{{ $user->id }}' })" class="p-1.5 text-ink-subtle hover:text-red-400 hover:bg-surface-3 rounded" title="Hapus">
+                                <x-heroicon-o-trash class="w-4 h-4" />
+                            </button>
+                        </div>
+                        <x-confirm-modal id="delete-user-{{ $user->id }}" wireClick="deleteUser({{ $user->id }})" title="Hapus Pengguna" message="Apakah Anda yakin ingin menghapus {{ $user->name }}?" confirmText="Hapus" />
                     </td>
                 </tr>
                 @endforeach

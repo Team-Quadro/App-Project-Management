@@ -12,23 +12,36 @@ use App\Models\Task;
 #[\Livewire\Attributes\Title('Dashboard')]
 class Dashboard extends Component
 {
-    public function render(DashboardService $dashboardService)
+   public function render(DashboardService $dashboardService)
     {
         $user = auth()->user();
         $data = $dashboardService->getSummary($user);
 
         $teamWorkload = collect();
-        if ($user->isCompanyAdmin() && $user->tenant_id) {
-            $teamWorkload = User::where('tenant_id', $user->tenant_id)
-                ->withCount([
+        
+        // Sekarang PIC dan Superadmin sama-sama bisa melihat workload
+        if ($user->isCompanyAdmin() || $user->isSuperAdmin()) {
+            
+            $query = User::with('tenant'); // Tarik relasi tenant untuk UI Superadmin
+
+            if ($user->isCompanyAdmin()) {
+                $query->where('tenant_id', $user->tenant_id);
+            } else {
+                // Jika Superadmin, tarik semua user yang punya perusahaan
+                $query->whereNotNull('tenant_id');
+            }
+
+            $teamWorkload = $query->withCount([
                     'assignedTasks as total_tasks',
-                    'assignedTasks as active_tasks' => function ($query) {
-                        $query->where('status', '!=', Task::STATUS_DONE);
+                    'assignedTasks as active_tasks' => function ($q) {
+                        $q->where('status', '!=', Task::STATUS_DONE);
                     },
-                    'assignedTasks as completed_tasks' => function ($query) {
-                        $query->where('status', Task::STATUS_DONE);
+                    'assignedTasks as completed_tasks' => function ($q) {
+                        $q->where('status', Task::STATUS_DONE);
                     }
                 ])
+                ->orderByDesc('active_tasks') // Urutkan dari yang tugasnya paling banyak
+                ->take(10) // Batasi 10 orang agar dashboard tetap rapi
                 ->get()
                 ->map(function ($member) {
                     $total = $member->total_tasks;
@@ -36,6 +49,7 @@ class Dashboard extends Component
                     return [
                         'name' => $member->name,
                         'job_title' => $member->job_title ?? 'Team Member',
+                        'company' => $member->tenant?->company_name, // Disiapkan untuk Superadmin
                         'active_tasks' => $active,
                         'completed_tasks' => $member->completed_tasks,
                         'total_tasks' => $total,

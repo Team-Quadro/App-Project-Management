@@ -1,6 +1,6 @@
 <div>
     <x-slot name="header">
-        <h1 class="text-sm font-semibold text-ink">Dasbor</h1>
+        <h1 class="text-sm font-semibold text-ink">Dashboard</h1>
     </x-slot>
 
     @php
@@ -95,9 +95,11 @@
             </div>
         </div>
 
-        {{-- Right column --}}
+{{-- Right column --}}
         <div class="space-y-6">
-            {{-- Company Card --}}
+            
+            {{-- Company Card (DIBUANG UNTUK SUPERADMIN) --}}
+            @if(!Auth::user()->isSuperAdmin())
             <div class="v-card p-5">
                 <h3 class="text-[13px] font-semibold text-ink mb-4">Perusahaan</h3>
                 @if($tenant)
@@ -128,6 +130,7 @@
                 <p class="text-[13px] text-ink-subtle">Tidak ada perusahaan yang ditentukan.</p>
                 @endif
             </div>
+            @endif
 
             {{-- Upcoming Deadlines --}}
             <div class="v-card overflow-hidden">
@@ -152,11 +155,13 @@
                 </div>
             </div>
 
-            {{-- Team Workload for PIC --}}
-            @if(Auth::user()->isCompanyAdmin() && $teamWorkload->isNotEmpty())
+            {{-- Team Workload (DIBUKA UNTUK PIC DAN SUPERADMIN) --}}
+            @if((Auth::user()->isCompanyAdmin() || Auth::user()->isSuperAdmin()) && $teamWorkload->isNotEmpty())
             <div class="v-card p-5">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-[13px] font-semibold text-ink">Beban Kerja Tim</h3>
+                    <h3 class="text-[13px] font-semibold text-ink">
+                        Beban Kerja {{ Auth::user()->isSuperAdmin() ? 'Global' : 'Tim' }}
+                    </h3>
                     <span class="text-[11px] text-ink-subtle uppercase tracking-wider font-medium">Tugas Aktif</span>
                 </div>
                 <div class="space-y-4">
@@ -165,7 +170,13 @@
                         <div class="flex items-center justify-between text-[13px]">
                             <div>
                                 <span class="font-medium text-ink block leading-tight">{{ $member['name'] }}</span>
-                                <span class="text-[11px] text-ink-subtle leading-tight">{{ $member['job_title'] }}</span>
+                                <span class="text-[11px] text-ink-subtle leading-tight">
+                                    {{ $member['job_title'] }}
+                                    {{-- Tambahan Context Perusahaan untuk Superadmin --}}
+                                    @if(Auth::user()->isSuperAdmin() && $member['company'])
+                                        <span class="text-primary/70 font-medium"> • {{ $member['company'] }}</span>
+                                    @endif
+                                </span>
                             </div>
                             <div class="text-right shrink-0 ml-2">
                                 <span class="text-ink font-semibold tabular-nums">{{ $member['active_tasks'] }}</span>
@@ -175,7 +186,6 @@
                         <div class="h-2 rounded-full bg-surface-2 overflow-hidden flex">
                             @php
                                 $pct = $member['workload_percentage'];
-                                // Custom workload indicator colors: Red for overloaded, Yellow for moderate, Indigo for light
                                 $color = $pct > 75 ? '#f87171' : ($pct > 40 ? '#f59e0b' : '#6366f1');
                             @endphp
                             <div class="h-full rounded-full transition-all duration-300" style="width: {{ $pct }}%; background-color: {{ $color }};"></div>

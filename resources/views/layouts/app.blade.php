@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <title>{{ config('app.name', 'ProjectHub') }} — @yield('title', 'Dashboard')</title>
+        <title>{{ config('app.name', 'PMT') }} — @yield('title', 'Dashboard')</title>
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="h-full font-sans antialiased bg-canvas text-ink" x-data="{ sidebarOpen: false }">
@@ -19,7 +19,7 @@
                      class="fixed inset-y-0 left-0 z-50 w-56 bg-surface-1 border-r border-hairline flex flex-col transition-transform duration-200 lg:translate-x-0 lg:static lg:z-auto">
                 {{-- Brand --}}
                 <div class="flex items-center gap-2.5 px-4 h-12 border-b border-hairline shrink-0">
-                    <span class="text-sm md:text-xl font-bold text-ink">ProjectHub</span>
+                    <span class="text-sm md:text-xl font-bold text-ink">PMT</span>
                 </div>
 
                 {{-- Navigation --}}
