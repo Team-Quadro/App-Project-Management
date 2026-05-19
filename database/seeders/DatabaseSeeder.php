@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             'status' => Tenant::STATUS_APPROVED,
             'approved_at' => now(),
         ]);
+
         // Superadmin 1
         User::create([
             'name' => 'Super Admin',
@@ -33,6 +34,8 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('superadmin123'),
             'role' => 'superadmin',
             'is_active' => true,
+            'approval_status' => 'approved',
+            'job_title' => 'System Administrator',
         ]);
 
         // Superadmin 2
@@ -42,6 +45,8 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('superadmin321'),
             'role' => 'superadmin',
             'is_active' => true,
+            'approval_status' => 'approved',
+            'job_title' => 'System Administrator',
         ]);
 
         // Admin Perusahaan
@@ -52,6 +57,8 @@ class DatabaseSeeder extends Seeder
             'role' => \App\Models\User::ROLE_PIC,
             'tenant_id' => $tenant->id,
             'is_active' => true,
+            'approval_status' => 'approved',
+            'job_title' => 'Project Manager',
         ]);
 
         $tenant->update([
@@ -67,6 +74,8 @@ class DatabaseSeeder extends Seeder
             'role' => 'member',
             'tenant_id' => $tenant->id,
             'is_active' => true,
+            'approval_status' => 'approved',
+            'job_title' => 'Frontend Developer',
         ]);
 
         // Member 2
@@ -77,6 +86,8 @@ class DatabaseSeeder extends Seeder
             'role' => 'member',
             'tenant_id' => $tenant->id,
             'is_active' => true,
+            'approval_status' => 'approved',
+            'job_title' => 'Backend Developer',
         ]);
 
         // Member 3
@@ -87,6 +98,8 @@ class DatabaseSeeder extends Seeder
             'role' => 'member',
             'tenant_id' => $tenant->id,
             'is_active' => true,
+            'approval_status' => 'approved',
+            'job_title' => 'Mobile Developer',
         ]);
 
         $projectWebsite = Project::create([

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'ProjectHub') }} — @yield('title', 'Welcome')</title>
+    <title>{{ config('app.name', 'PMT') }} — @yield('title', 'Welcome')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="h-full font-sans antialiased bg-canvas text-ink">
@@ -22,14 +22,14 @@
                     <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                     </div>
-                    <span class="text-lg font-bold text-ink tracking-tight">ProjectHub</span>
+                    <span class="text-lg font-bold text-ink tracking-tight">PMT</span>
                 </div>
             </div>
 
             <div class="relative space-y-8">
                 <div>
                     <h1 class="text-3xl font-bold text-ink leading-tight tracking-tight mb-3">Manage projects<br>with clarity.</h1>
-                    <p class="text-[15px] text-ink-subtle leading-relaxed">A modern workspace for teams to plan, track, and ship work together — beautifully.</p>
+                    <p class="text-[15px] text-ink-subtle leading-relaxed">A modern workspace for teams to plan, track, and ship work together.</p>
                 </div>
 
                 <div class="space-y-4">
@@ -45,7 +45,7 @@
             </div>
 
             <div class="relative text-[12px] text-ink-muted">
-                &copy; {{ date('Y') }} ProjectHub. All rights reserved.
+                &copy; {{ date('Y') }} PMT. All rights reserved.
             </div>
         </div>
 
@@ -56,7 +56,7 @@
                 <div class="w-7 h-7 rounded-md bg-primary flex items-center justify-center">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                 </div>
-                <span class="text-base font-bold text-ink">ProjectHub</span>
+                <span class="text-base font-bold text-ink">PMT</span>
             </div>
 
             <div class="w-full max-w-sm">

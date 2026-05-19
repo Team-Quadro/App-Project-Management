@@ -4,13 +4,12 @@ namespace App\Livewire\Company;
 
 use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use App\Models\User;
-use App\Models\TenantJoinRequest;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 #[Layout('layouts.app')]
-#[\Livewire\Attributes\Title('Members')]
+#[Title('Anggota')]
 class UserManager extends Component
 {
     public $showCreate = false;
@@ -29,16 +28,11 @@ class UserManager extends Component
 
         $tenant = $user->tenant;
 
+        // Hanya mengambil data member, logika $requests dihapus
         $members = $tenant?->users()->orderBy('name')->get() ?? collect();
-        $requests = $tenant?->joinRequests()
-            ->where('status', TenantJoinRequest::STATUS_PENDING)
-            ->with('user')
-            ->latest()
-            ->get() ?? collect();
 
         return view('livewire.company.user-manager', [
             'members' => $members,
-            'requests' => $requests,
             'tenant' => $tenant,
         ]);
     }
@@ -61,11 +55,12 @@ class UserManager extends Component
             'tenant_id' => $user->tenant_id,
             'role' => User::ROLE_MEMBER,
             'is_active' => true,
+            'approval_status' => 'pending', // Status awal langsung pending untuk Superadmin
             'email_verified_at' => now(),
         ]);
 
         $this->reset(['name', 'email', 'job_title', 'showCreate']);
-        session()->flash('success', 'Member added successfully.');
+        session()->flash('success', 'Anggota berhasil ditambahkan dan menunggu persetujuan Superadmin.');
     }
 
     public function toggleActive(User $member)
@@ -75,7 +70,7 @@ class UserManager extends Component
         }
 
         $member->update(['is_active' => !$member->is_active]);
-        session()->flash('success', 'Member status updated.');
+        session()->flash('success', 'Status anggota berhasil diperbarui.');
     }
 
     public function deleteMember(User $member)
@@ -84,53 +79,12 @@ class UserManager extends Component
             return;
         }
 
-        // Unlink from tenant instead of deleting if they have data? 
-        // For now, let's follow the simple approach: set tenant_id to null and role to member.
         $member->update([
             'tenant_id' => null,
             'role' => User::ROLE_MEMBER,
             'is_active' => true,
         ]);
 
-        session()->flash('success', 'Member removed from company.');
-    }
-
-    public function approveRequest(TenantJoinRequest $joinRequest)
-    {
-        $user = auth()->user();
-
-        if ($joinRequest->tenant_id !== $user->tenant_id || $joinRequest->status !== TenantJoinRequest::STATUS_PENDING) {
-            return;
-        }
-
-        $joinRequest->user()->update([
-            'tenant_id' => $joinRequest->tenant_id,
-            'role' => User::ROLE_MEMBER,
-        ]);
-
-        $joinRequest->update([
-            'status' => TenantJoinRequest::STATUS_APPROVED,
-            'approved_by' => $user->id,
-            'responded_at' => now(),
-        ]);
-
-        session()->flash('success', 'User approved.');
-    }
-
-    public function rejectRequest(TenantJoinRequest $joinRequest)
-    {
-        $user = auth()->user();
-
-        if ($joinRequest->tenant_id !== $user->tenant_id || $joinRequest->status !== TenantJoinRequest::STATUS_PENDING) {
-            return;
-        }
-
-        $joinRequest->update([
-            'status' => TenantJoinRequest::STATUS_REJECTED,
-            'approved_by' => $user->id,
-            'responded_at' => now(),
-        ]);
-
-        session()->flash('success', 'Request rejected.');
+        session()->flash('success', 'Anggota berhasil dihapus dari perusahaan.');
     }
 }

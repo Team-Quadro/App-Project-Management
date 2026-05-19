@@ -113,6 +113,31 @@ class UserManager extends Component
         session()->flash('success', 'Pengguna berhasil dihapus.');
     }
 
+    public function approveUser($userId)
+    {
+        $user = User::findOrFail($userId);
+        
+        $user->update([
+            'approval_status' => 'approved',
+            'is_active' => true,
+        ]);
+
+        session()->flash('success', "Akun {$user->name} berhasil disetujui.");
+    }
+
+    public function rejectUser($userId)
+    {
+        $user = User::findOrFail($userId);
+        
+        // Tergantung business logic-mu, ditolak bisa berarti dihapus atau di-set reject
+        $user->update([
+            'approval_status' => 'rejected',
+            'is_active' => false,
+        ]);
+
+        session()->flash('success', "Akun {$user->name} telah ditolak.");
+    }
+
     public function render()
     {
         $users = User::query()

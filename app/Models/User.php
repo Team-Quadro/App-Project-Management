@@ -24,7 +24,9 @@ class User extends Authenticatable
         'password',
         'role',
         'tenant_id',
+        'job_title',
         'is_active',
+        'approval_status',
     ];
 
     /**
