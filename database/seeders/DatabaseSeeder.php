@@ -167,6 +167,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Create default global workflow stages for this tenant
+        // PENAMBAHAN IS_ACTIVE DI SINI
         $stageTodo = \App\Models\WorkflowStage::create([
             'tenant_id'  => $tenant->id,
             'project_id' => null,
@@ -174,6 +175,7 @@ class DatabaseSeeder extends Seeder
             'key'        => 'todo',
             'color'      => '#6b7280',
             'sort_order' => 1,
+            'is_active'  => false, // Todo tidak aktif
         ]);
         $stageDoing = \App\Models\WorkflowStage::create([
             'tenant_id'  => $tenant->id,
@@ -182,6 +184,7 @@ class DatabaseSeeder extends Seeder
             'key'        => 'doing',
             'color'      => '#3b82f6',
             'sort_order' => 2,
+            'is_active'  => true,  // Doing aktif
         ]);
         $stageDone = \App\Models\WorkflowStage::create([
             'tenant_id'  => $tenant->id,
@@ -190,6 +193,7 @@ class DatabaseSeeder extends Seeder
             'key'        => 'done',
             'color'      => '#22c55e',
             'sort_order' => 3,
+            'is_active'  => false, // Done tidak aktif
         ]);
 
         $tenantStages = collect([$stageTodo, $stageDoing, $stageDone]);

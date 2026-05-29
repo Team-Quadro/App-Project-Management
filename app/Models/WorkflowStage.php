@@ -19,6 +19,11 @@ class WorkflowStage extends Model
         'key',
         'sort_order',
         'color',
+        'is_active', 
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
     ];
 
     public function project(): BelongsTo
