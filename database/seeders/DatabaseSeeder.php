@@ -3,8 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\Project;
+use App\Models\ProjectStage;
 use App\Models\Task;
 use App\Models\Tenant;
+use App\Models\CompanyRole;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -26,6 +28,12 @@ class DatabaseSeeder extends Seeder
             'status' => Tenant::STATUS_APPROVED,
             'approved_at' => now(),
         ]);
+
+        ProjectStage::ensureDefaultsForTenant($tenant->id);
+        CompanyRole::ensureDefaultsForTenant($tenant->id);
+
+        $frontEndRole = CompanyRole::where('tenant_id', $tenant->id)->where('name', 'Front End')->first();
+        $backEndRole = CompanyRole::where('tenant_id', $tenant->id)->where('name', 'Back End')->first();
 
         // Superadmin 1
         User::create([
@@ -73,6 +81,7 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('user123'),
             'role' => 'member',
             'tenant_id' => $tenant->id,
+            'company_role_id' => $frontEndRole?->id,
             'is_active' => true,
             'approval_status' => 'approved',
             'job_title' => 'Frontend Developer',
@@ -85,6 +94,7 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('user123'),
             'role' => 'member',
             'tenant_id' => $tenant->id,
+            'company_role_id' => $backEndRole?->id,
             'is_active' => true,
             'approval_status' => 'approved',
             'job_title' => 'Backend Developer',

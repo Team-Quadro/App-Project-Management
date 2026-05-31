@@ -80,6 +80,15 @@ class Project extends Model
      */
     public function getStageLabelAttribute(): string
     {
+        $stage = ProjectStage::withoutGlobalScopes()
+            ->where('tenant_id', $this->tenant_id)
+            ->where('key', $this->stage)
+            ->first();
+
+        if ($stage) {
+            return $stage->name;
+        }
+
         return self::STAGES[$this->stage] ?? ucfirst(str_replace('_', ' ', $this->stage));
     }
 

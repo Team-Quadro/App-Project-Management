@@ -28,12 +28,19 @@ class ProjectService
      */
     public function create(array $data, User $owner): Project
     {
+        \App\Models\ProjectStage::ensureDefaultsForTenant($owner->tenant_id);
+
+        $defaultStage = \App\Models\ProjectStage::withoutGlobalScopes()
+            ->where('tenant_id', $owner->tenant_id)
+            ->orderBy('sort_order')
+            ->value('key');
+
         $project = Project::create([
             'tenant_id' => $owner->tenant_id,
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
             'status' => $data['status'] ?? Project::STATUS_ACTIVE,
-            'stage' => $data['stage'] ?? Project::STAGE_APPROACH,
+            'stage' => $data['stage'] ?? $defaultStage ?? Project::STAGE_APPROACH,
             'owner_id' => $owner->id,
             'deadline' => $data['deadline'] ?? null,
         ]);
