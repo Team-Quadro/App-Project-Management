@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->string('status')->default('todo'); // todo, in_progress, done
             $table->string('priority')->default('medium'); // low, medium, high
             $table->foreignId('assigned_to')->nullable()->constrained('users')->nullOnDelete();
-            $table->date('deadline')->nullable();
+            $table->dateTime('deadline')->nullable();
             $table->timestamps();
         });
     }

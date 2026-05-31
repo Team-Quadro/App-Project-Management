@@ -24,12 +24,13 @@ class Task extends Model
         'priority',
         'assigned_to',
         'deadline',
+        'previous_stage_id',
     ];
 
     protected function casts(): array
     {
         return [
-            'deadline' => 'date',
+            'deadline' => 'datetime',
         ];
     }
 

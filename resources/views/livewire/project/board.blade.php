@@ -7,6 +7,11 @@
         </div>
     </x-slot>
 
+    {{-- Asset Flatpickr Lokal (Tanpa CDN) --}}
+    <link rel="stylesheet" href="{{ asset('vendor/flatpickr/flatpickr.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/flatpickr/dark.css') }}">
+    <script src="{{ asset('vendor/flatpickr/flatpickr.min.js') }}"></script>
+
     <div class="flex flex-col bg-canvas relative" x-data="{ addingSection: false }" x-on:section-added.window="addingSection = false">
 
         {{-- Project Header --}}
@@ -16,7 +21,6 @@
                     <div class="flex items-center gap-3">
                         <h1 class="text-2xl font-semibold text-ink tracking-tight">{{ $project->title }}</h1>
                         @can('update', $project)
-                        {{-- Interactive Stage Switcher for PIC / Superadmin --}}
                         <div x-data="{ open: false }" class="relative shrink-0">
                             <button @click="open = !open" class="flex items-center gap-1.5 px-2 py-0.5 rounded-[3px] text-[11px] font-[510] border transition-colors duration-100
                                 @php
@@ -41,7 +45,6 @@
                             </div>
                         </div>
                         @else
-                        {{-- Static Badge for Karyawan/Regular Member --}}
                         <x-badge :variant="$project->stage">{{ $project->stage_label }}</x-badge>
                         @endcan
                     </div>
@@ -58,7 +61,7 @@
                         @if($project->deadline)
                         <div class="flex items-center gap-1.5 {{ $project->deadline->isPast() ? 'text-red-400' : 'text-ink-subtle' }}">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                            {{ $project->deadline->format('M j, Y') }}
+                            {{ $project->deadline->format('d M Y') }}
                         </div>
                         @endif
                     </div>
@@ -96,22 +99,21 @@
         {{-- Task List --}}
         <div class="flex-1 overflow-y-auto pb-20">
             {{-- Table Header --}}
-            <div class="grid grid-cols-[1fr_140px_100px_120px_90px_70px] gap-3 px-6 py-2 border-b border-hairline text-[11px] font-medium text-ink-subtle uppercase tracking-wider select-none sticky top-0 bg-canvas z-10">
-
-                <div class="pl-11">Nama tugas</div>
+            <div class="grid grid-cols-[1fr_140px_130px_100px_90px_70px] gap-3 px-6 py-2 border-b border-hairline text-[11px] font-medium text-ink-subtle uppercase tracking-wider select-none sticky top-0 bg-canvas z-10">
+                <div class="pl-16">Nama tugas</div>
                 <div>Ditugaskan</div>
                 <div>Tenggat waktu</div>
                 <div>Prioritas</div>
                 <div>Status</div>
-                <div></div>
+                <div class="text-center">Selesai</div>
             </div>
 
-            {{-- Quick Add Task (from toolbar button) --}}
+            {{-- Quick Add Task --}}
             @can('updateTasks', $project)
             @if($addingTaskGroup === '__top__')
             <div class="px-6 py-2 border-b border-hairline bg-surface-1/30">
-                <form wire:submit="addTask('{{ $workflowStages->first()?->key ?? 'todo' }}', {{ $workflowStages->first()?->id ?? 'null' }})" class="grid grid-cols-[1fr_140px_100px_120px_90px_70px] gap-3 items-center m-0">
-                    <div class="pl-20">
+                <form wire:submit="addTask('{{ $workflowStages->first()?->key ?? 'todo' }}', {{ $workflowStages->first()?->id ?? 'null' }})" class="grid grid-cols-[1fr_140px_130px_100px_90px_70px] gap-3 items-center m-0">
+                    <div class="pl-16">
                         <input type="text" wire:model="newTaskTitle" placeholder="Judul tugas..." class="v-input !py-1 !px-2 text-[13px] w-full" autofocus required>
                     </div>
                     <div>
@@ -122,9 +124,19 @@
                             @endforeach
                         </select>
                     </div>
-                    <div>
-                        <input type="date" wire:model="newTaskDeadline" class="v-input !py-1 text-[13px] bg-canvas border-hairline text-ink-subtle w-full">
+
+                    {{-- Flatpickr Input (Tambah Tugas Atas) --}}
+                    <div x-data="{ date: @entangle('newTaskDeadline') }"
+                         x-init="const fp = flatpickr($refs.input, {
+                             enableTime: true,
+                             time_24hr: true,
+                             dateFormat: 'Y-m-d H:i',
+                             onChange: function(selectedDates, dateStr) { date = dateStr; }
+                         });
+                         $watch('date', value => { if(!value) fp.clear(); else fp.setDate(value); });">
+                        <input type="text" x-ref="input" placeholder="Pilih waktu..." class="v-input !py-1 text-[13px] bg-canvas border-hairline text-ink-subtle w-full cursor-pointer">
                     </div>
+
                     <div>
                         <select wire:model="newTaskPriority" class="v-select !py-1 text-[13px] bg-canvas border-hairline w-full">
                             @foreach (\App\Models\Task::PRIORITIES as $p)
@@ -133,7 +145,7 @@
                         </select>
                     </div>
                     <div></div>
-                    <div class="flex items-center gap-1">
+                    <div class="flex items-center justify-center gap-1">
                         <button type="submit" class="v-btn-primary !py-1 !px-2 text-[12px]">Tambah</button>
                         <button type="button" wire:click="$set('addingTaskGroup', null)" class="p-1 text-ink-subtle hover:text-ink shrink-0">
                             <x-heroicon-o-x-mark class="w-3.5 h-3.5" />
@@ -145,8 +157,6 @@
             @endcan
 
             @php
-                /** @var \Illuminate\Database\Eloquent\Collection $tasks */
-                /** @var \Illuminate\Database\Eloquent\Collection $workflowStages */
                 $groupedTasks = $workflowStages->mapWithKeys(fn($s) => [
                     $s->key => ['stage' => $s, 'tasks' => $tasks->where('stage_id', $s->id)->values()]
                 ]);
@@ -157,17 +167,17 @@
             @if($ungrouped->count())
             <div class="px-6 divide-y divide-hairline/50 task-drop-zone" data-stage-id="">
                 @foreach ($ungrouped as $task)
-                        <div class="task-row border-b border-hairline/30 py-3 pl-11 group/task" data-task-id="{{ $task->id }}" draggable="true" wire:key="ungrouped-task-{{ $task->id }}">
-                            <div class="grid grid-cols-[1fr_140px_100px_120px_90px_70px] gap-3 items-center">
-                                <div class="flex items-center gap-2 cursor-pointer" wire:click="selectTask({{ $task->id }})">
+                        <div class="task-row border-b border-hairline/30 py-3 pl-20 group/task hover:bg-surface-1/30 transition-colors" data-task-id="{{ $task->id }}" draggable="true" wire:key="ungrouped-task-{{ $task->id }}">
+                            <div class="grid grid-cols-[1fr_140px_130px_100px_90px_70px] gap-3 items-center">
+                                <div class="flex items-center gap-3 cursor-pointer" wire:click="selectTask({{ $task->id }})">
                                     <div class="w-2.5 h-2.5 rounded-full bg-gray-500"></div>
                                     <span class="text-[13px] font-medium text-ink group-hover/task:text-primary transition-colors">{{ $task->title }}</span>
                                 </div>
                                 <div class="text-[12px] text-ink-subtle truncate">
                                     {{ $task->assignee ? $task->assignee->name : 'Tidak Ditugaskan' }}
                                 </div>
-                                <div class="text-[12px] {{ $task->deadline && $task->deadline->isPast() ? 'text-red-400' : 'text-ink-subtle' }}">
-                                    {{ $task->deadline ? $task->deadline->format('M j') : '-' }}
+                                <div class="text-[12px] {{ $task->deadline && $task->deadline->isPast() ? 'text-red-400 font-medium' : 'text-ink-subtle' }}">
+                                    {{ $task->deadline ? $task->deadline->format('d M Y, H:i') . ' WIB' : '-' }}
                                 </div>
                                 <div>
                                     <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-surface-3 text-ink-subtle">
@@ -175,7 +185,12 @@
                                     </span>
                                 </div>
                                 <div class="text-[12px] text-ink-subtle">Tanpa Grup</div>
-                                <div></div>
+                                <div class="flex items-center justify-center">
+                                    <input type="checkbox"
+                                           wire:click="toggleTaskDone({{ $task->id }})"
+                                           class="w-4 h-4 text-green-500 bg-surface-1 border-hairline rounded focus:ring-green-500 cursor-pointer transition-colors"
+                                           {{ strtolower($task->stage->key ?? $task->status) === 'done' ? 'checked' : '' }}>
+                                </div>
                             </div>
                         </div>
                 @endforeach
@@ -188,9 +203,8 @@
             @php $stage = $group['stage']; $stageTasks = $group['tasks']; @endphp
             <div class="section-block mt-4 mb-2 px-4" x-data="{ open: true }" data-section-id="{{ $stage->id }}" wire:key="stage-{{ $stage->id }}">
 
-
+                {{-- HEADER STAGE --}}
                 <div class="flex items-center gap-2 group/sec mb-3 py-2 border-b border-hairline/30">
-                    {{-- Drag grip --}}
                     <div class="section-grip cursor-grab active:cursor-grabbing p-1 text-ink-muted opacity-0 group-hover/sec:opacity-100 transition-opacity shrink-0" title="Geser untuk mengurutkan">
                         <svg class="w-4 h-4" viewBox="0 0 16 20" fill="currentColor"><circle cx="5" cy="4" r="1.5"/><circle cx="11" cy="4" r="1.5"/><circle cx="5" cy="10" r="1.5"/><circle cx="11" cy="10" r="1.5"/><circle cx="5" cy="16" r="1.5"/><circle cx="11" cy="16" r="1.5"/></svg>
                     </div>
@@ -204,7 +218,6 @@
 
                         <span class="text-[13px] font-medium text-ink-muted ml-2 tabular-nums">{{ $stageTasks->count() }}</span>
                     </button>
-                    {{-- Delete section --}}
                     @can('update', $project)
                     <div class="opacity-0 group-hover/sec:opacity-100 transition-opacity">
                         <button type="button" x-data @click="$dispatch('open-confirm-modal', { id: 'delete-stage-{{ $stage->id }}' })" class="p-1.5 text-ink-muted hover:text-red-400 rounded transition-colors" title="Hapus bagian">
@@ -217,9 +230,8 @@
 
                 <div x-show="open" class="task-drop-zone min-h-[10px]" data-stage-id="{{ $stage->id }}">
                     @foreach ($stageTasks as $task)
-
                         <div class="task-row border-b border-hairline/30 py-3 pl-22 group/task hover:bg-surface-1/30 transition-colors" data-task-id="{{ $task->id }}" draggable="true" wire:key="task-{{ $task->id }}">
-                            <div class="grid grid-cols-[1fr_140px_100px_120px_90px_70px] gap-3 items-center">
+                            <div class="grid grid-cols-[1fr_140px_130px_100px_90px_70px] gap-3 items-center">
                                 <div class="flex items-center gap-3 cursor-pointer" wire:click="selectTask({{ $task->id }})">
                                     <div class="w-2.5 h-2.5 rounded-full" style="background-color: {{ $stage->color ?? '#6b7280' }}"></div>
                                     <span class="text-[13px] font-medium text-ink group-hover/task:text-primary transition-colors">{{ $task->title }}</span>
@@ -228,7 +240,7 @@
                                     {{ $task->assignee ? $task->assignee->name : 'Tidak Ditugaskan' }}
                                 </div>
                                 <div class="text-[12px] {{ $task->deadline && $task->deadline->isPast() ? 'text-red-400 font-medium' : 'text-ink-subtle' }}">
-                                    {{ $task->deadline ? $task->deadline->format('M j') : '-' }}
+                                    {{ $task->deadline ? $task->deadline->format('d M Y, H:i') . ' WIB' : '-' }}
                                 </div>
                                 <div>
                                     <span class="text-[11px] font-medium px-2.5 py-1 rounded-full bg-surface-3 text-ink-subtle">
@@ -236,7 +248,13 @@
                                     </span>
                                 </div>
                                 <div class="text-[12px] text-ink-subtle font-medium">{{ $stage->name }}</div>
-                                <div></div>
+
+                                <div class="flex items-center justify-center">
+                                    <input type="checkbox"
+                                           wire:click="toggleTaskDone({{ $task->id }})"
+                                           class="w-4 h-4 text-green-500 bg-surface-1 border-hairline rounded focus:ring-green-500 cursor-pointer transition-colors"
+                                           {{ strtolower($task->stage->key ?? $task->status) === 'done' ? 'checked' : '' }}>
+                                </div>
                             </div>
                         </div>
                     @endforeach
@@ -244,15 +262,15 @@
                     {{-- Inline Add Task --}}
                     @can('updateTasks', $project)
                     @if($addingTaskGroup !== $stage->key)
-                    <div wire:click="$set('addingTaskGroup', '{{ $stage->key }}')" class="flex items-center gap-3 py-3 pl-16 text-[13px] text-ink-muted hover:text-ink-subtle cursor-pointer transition-colors mt-1">
+                    <div wire:click="$set('addingTaskGroup', '{{ $stage->key }}')" class="flex items-center gap-3 py-3 pl-18 text-[13px] text-ink-muted hover:text-ink-subtle cursor-pointer transition-colors mt-1">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                         Tambah tugas...
                     </div>
                     @endif
                     @if($addingTaskGroup === $stage->key)
                     <div class="py-2 pr-6 mt-1 border-y border-hairline/30 bg-surface-1/30">
-                        <form wire:submit="addTask('{{ $stage->key }}', {{ $stage->id }})" class="grid grid-cols-[1fr_140px_100px_120px_90px_70px] gap-3 items-center m-0">
-                            <div class="pl-24">
+                        <form wire:submit="addTask('{{ $stage->key }}', {{ $stage->id }})" class="grid grid-cols-[1fr_140px_130px_100px_90px_70px] gap-3 items-center m-0">
+                            <div class="pl-16">
                                 <input type="text" wire:model="newTaskTitle" placeholder="Judul tugas..." class="v-input !py-1 !px-2 text-[13px] w-full" autofocus required>
                             </div>
                             <div>
@@ -263,9 +281,19 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div>
-                                <input type="date" wire:model="newTaskDeadline" class="v-input !py-1 text-[13px] bg-canvas border-hairline text-ink-subtle w-full">
+
+                            {{-- Flatpickr Input --}}
+                            <div x-data="{ date: @entangle('newTaskDeadline') }"
+                                 x-init="const fp = flatpickr($refs.input, {
+                                     enableTime: true,
+                                     time_24hr: true,
+                                     dateFormat: 'Y-m-d H:i',
+                                     onChange: function(selectedDates, dateStr) { date = dateStr; }
+                                 });
+                                 $watch('date', value => { if(!value) fp.clear(); else fp.setDate(value); });">
+                                <input type="text" x-ref="input" placeholder="Pilih waktu..." class="v-input !py-1 text-[13px] bg-canvas border-hairline text-ink-subtle w-full cursor-pointer">
                             </div>
+
                             <div>
                                 <select wire:model="newTaskPriority" class="v-select !py-1 text-[13px] bg-canvas border-hairline w-full">
                                     @foreach (\App\Models\Task::PRIORITIES as $p)
@@ -274,7 +302,7 @@
                                 </select>
                             </div>
                             <div></div>
-                            <div class="flex items-center gap-1">
+                            <div class="flex items-center justify-center gap-1">
                                 <button type="submit" class="v-btn-primary !py-1 !px-2 text-[12px]">Tambah</button>
                                 <button type="button" wire:click="$set('addingTaskGroup', null)" class="p-1 text-ink-subtle hover:text-ink shrink-0">
                                     <x-heroicon-o-x-mark class="w-3.5 h-3.5" />
@@ -320,7 +348,6 @@
                             </div>
                         </div>
 
-                        {{-- Active Feature Task Category --}}
                         <div class="pt-3 border-t border-hairline/50 mt-2">
                             <label class="flex items-center gap-3 cursor-pointer">
                                 <input type="checkbox" wire:model="newSectionIsActive" class="rounded text-primary focus:ring-primary w-4 h-4 border-hairline bg-surface-1">
@@ -371,7 +398,18 @@
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                     Tenggat
                                 </div>
-                                <input type="date" wire:model="editingTaskDeadline" class="v-input !py-1 bg-canvas border-hairline text-[13px] text-ink">
+
+                                {{-- Flatpickr Input (Sidebar Kanan) --}}
+                                <div x-data="{ deadline: @entangle('editingTaskDeadline') }"
+                                     x-init="const fp = flatpickr($refs.input, {
+                                         enableTime: true,
+                                         time_24hr: true,
+                                         dateFormat: 'Y-m-d H:i',
+                                         onChange: function(selectedDates, dateStr) { deadline = dateStr; }
+                                     });
+                                     $watch('deadline', value => { if(value) fp.setDate(value); else fp.clear(); });">
+                                    <input type="text" x-ref="input" placeholder="Pilih waktu..." class="v-input !py-1 bg-canvas border-hairline text-[13px] text-ink w-full cursor-pointer">
+                                </div>
 
                                 <div class="text-ink-subtle flex items-center gap-2">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
