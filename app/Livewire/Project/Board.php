@@ -15,22 +15,23 @@ class Board extends Component
     use AuthorizesRequests;
 
     public Project $project;
-    
+
     public $search = '';
     public $task_status = '';
-    
+
     // Quick Add Task
     public $addingTaskGroup = null;
     public $newTaskTitle = '';
     public $newTaskAssignee = '';
     public $newTaskDeadline = '';
     public $newTaskPriority = 'medium';
-    
+
     // Quick Add Section
     public $addingSection = false;
     public $newSectionName = '';
     public $newSectionColor = '#6366f1';
-    
+    public $newSectionIsActive = false; // <-- TAMBAHAN: Properti baru untuk status aktif
+
     // Sidebar
     public $selectedTaskId = null;
     public ?Task $editingTask = null;
@@ -46,7 +47,7 @@ class Board extends Component
         $this->project = $project;
         $this->authorize('view', $project);
     }
-    
+
     public function title()
     {
         return $this->project->title;
@@ -55,19 +56,19 @@ class Board extends Component
     public function render()
     {
         $this->project->load(['owner', 'members']);
-        
+
         $tasks = $this->project->tasks()
             ->search($this->search)
             ->filterStatus($this->task_status)
             ->with('assignee')
             ->orderBy('created_at')
             ->get();
-            
+
         $projectUsers = collect([$this->project->owner])
             ->merge($this->project->members)
             ->unique('id')
             ->sortBy('name');
-            
+
         $tenantId = auth()->user()->tenant_id ?? $this->project->tenant_id;
         $workflowStages = WorkflowStage::withoutGlobalScopes()
             ->where('tenant_id', $tenantId)
@@ -77,22 +78,22 @@ class Board extends Component
             })
             ->orderBy('sort_order')
             ->get();
-            
+
         return view('livewire.project.board', [
             'tasks' => $tasks,
             'projectUsers' => $projectUsers,
             'workflowStages' => $workflowStages,
         ]);
     }
-    
+
     public function addTask($stageKey, $stageId)
     {
         $this->authorize('updateTasks', $this->project);
-        
+
         $this->validate([
             'newTaskTitle' => 'required|string|max:255',
         ]);
-        
+
         $this->project->tasks()->create([
             'title' => $this->newTaskTitle,
             'assigned_to' => $this->newTaskAssignee ?: null,
@@ -101,41 +102,44 @@ class Board extends Component
             'status' => $stageKey,
             'stage_id' => $stageId,
         ]);
-        
+
         $this->reset(['newTaskTitle', 'newTaskAssignee', 'newTaskDeadline', 'newTaskPriority', 'addingTaskGroup']);
         $this->newTaskPriority = 'medium';
     }
-    
+
     public function addSection()
     {
         $this->authorize('update', $this->project);
-        
+
         $this->validate([
             'newSectionName' => 'required|string|max:255',
             'newSectionColor' => 'required|string',
+            'newSectionIsActive' => 'boolean', // <-- TAMBAHAN: Validasi boolean
         ]);
-        
+
         $tenantId = auth()->user()->tenant_id ?? $this->project->tenant_id;
-        
+
         $maxOrder = WorkflowStage::withoutGlobalScopes()
             ->where('tenant_id', $tenantId)
             ->whereNull('project_id')
             ->max('sort_order') ?? 0;
-            
+
         WorkflowStage::withoutGlobalScopes()->create([
             'tenant_id' => $tenantId,
             'project_id' => $this->project->id,
             'name' => $this->newSectionName,
             'key' => \Illuminate\Support\Str::slug($this->newSectionName, '_'),
             'color' => $this->newSectionColor,
+            'is_active' => $this->newSectionIsActive ? true : false, // <-- TAMBAHAN: Simpan ke database
             'sort_order' => $maxOrder + 1,
         ]);
-        
-        $this->reset(['newSectionName', 'newSectionColor']);
+
+        // Reset form inputan termasuk checkbox
+        $this->reset(['newSectionName', 'newSectionColor', 'newSectionIsActive']);
         $this->newSectionColor = '#6366f1';
         $this->dispatch('section-added');
     }
-    
+
     public function selectTask(Task $task)
     {
         $this->selectedTaskId = $task->id;
@@ -147,7 +151,7 @@ class Board extends Component
         $this->editingTaskPriority = $task->priority;
         $this->editingTaskDescription = $task->description;
     }
-    
+
     public function closeSidebar()
     {
         $this->reset([
@@ -155,12 +159,12 @@ class Board extends Component
             'editingTaskDeadline', 'editingTaskStatus', 'editingTaskPriority', 'editingTaskDescription'
         ]);
     }
-    
+
     public function updateTask()
     {
         if (!$this->editingTask) return;
         $this->authorize('updateTasks', $this->project);
-        
+
         $this->editingTask->update([
             'title' => $this->editingTaskTitle,
             'assigned_to' => $this->editingTaskAssignee ?: null,
@@ -169,25 +173,25 @@ class Board extends Component
             'priority' => $this->editingTaskPriority,
             'description' => $this->editingTaskDescription,
         ]);
-        
+
         $tenantId = auth()->user()->tenant_id ?? $this->project->tenant_id;
         $stage = WorkflowStage::withoutGlobalScopes()
             ->where('tenant_id', $tenantId)
             ->whereNull('project_id')
             ->where('key', $this->editingTaskStatus)
             ->first();
-            
+
         if ($stage) {
             $this->editingTask->update(['stage_id' => $stage->id]);
         }
-        
+
         session()->flash('success', 'Task updated.');
     }
-    
+
     public function deleteTaskSection(WorkflowStage $stage)
     {
         $this->authorize('update', $this->project);
-        
+
         $tenantId = $stage->tenant_id;
         $fallback = WorkflowStage::withoutGlobalScopes()
             ->where('tenant_id', $tenantId)
@@ -204,17 +208,17 @@ class Board extends Component
                     'status' => $fallback->key,
                 ]);
         }
-        
+
         $stage->delete();
     }
-    
+
     #[\Livewire\Attributes\On('taskMoved')]
     public function handleTaskMoved($taskId, $newStageId = null)
     {
         $this->authorize('updateTasks', $this->project);
-        
+
         $task = Task::find($taskId);
-        
+
         if ($task) {
             if ($newStageId) {
                 $stage = WorkflowStage::withoutGlobalScopes()->find($newStageId);
@@ -232,12 +236,12 @@ class Board extends Component
             }
         }
     }
-    
+
     #[\Livewire\Attributes\On('sectionReordered')]
     public function handleSectionReordered($orderedIds)
     {
         $this->authorize('update', $this->project); // Only PIC/owner can reorder sections
-        
+
         foreach ($orderedIds as $index => $stageId) {
             WorkflowStage::withoutGlobalScopes()
                 ->where('id', $stageId)
@@ -248,7 +252,7 @@ class Board extends Component
     public function updateProjectStage($newStage)
     {
         $this->authorize('update', $this->project);
-        
+
         if (!array_key_exists($newStage, Project::STAGES)) {
             return;
         }

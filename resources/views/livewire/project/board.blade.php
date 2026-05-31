@@ -75,7 +75,7 @@
         <div class="px-6 py-3 flex items-center gap-3 border-b border-hairline bg-surface-1/20">
             <div class="relative flex-1">
                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-subtle" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                <input type="text" wire:model.live.debounce.300ms="search" class="v-input !py-1.5 pl-9 bg-surface-1 border-transparent hover:border-hairline focus:border-primary w-full text-[13px] transition-colors" placeholder="Cari tugas...">
+                <input type="text" wire:model.live.debounce.300ms="search" class="v-input !py-1.5 !pl-10 bg-surface-1 border-transparent hover:border-hairline focus:border-primary w-full text-[13px] transition-colors" placeholder="Cari tugas...">
             </div>
             <div>
                 <select wire:model.live="task_status" class="v-select !py-1.5 bg-surface-1 text-[13px] border-transparent hover:border-hairline w-32 transition-colors">
@@ -97,7 +97,8 @@
         <div class="flex-1 overflow-y-auto pb-20">
             {{-- Table Header --}}
             <div class="grid grid-cols-[1fr_140px_100px_120px_90px_70px] gap-3 px-6 py-2 border-b border-hairline text-[11px] font-medium text-ink-subtle uppercase tracking-wider select-none sticky top-0 bg-canvas z-10">
-                <div class="pl-7">Nama tugas</div>
+
+                <div class="pl-11">Nama tugas</div>
                 <div>Ditugaskan</div>
                 <div>Tenggat waktu</div>
                 <div>Prioritas</div>
@@ -110,7 +111,7 @@
             @if($addingTaskGroup === '__top__')
             <div class="px-6 py-2 border-b border-hairline bg-surface-1/30">
                 <form wire:submit="addTask('{{ $workflowStages->first()?->key ?? 'todo' }}', {{ $workflowStages->first()?->id ?? 'null' }})" class="grid grid-cols-[1fr_140px_100px_120px_90px_70px] gap-3 items-center m-0">
-                    <div class="pl-7">
+                    <div class="pl-20">
                         <input type="text" wire:model="newTaskTitle" placeholder="Judul tugas..." class="v-input !py-1 !px-2 text-[13px] w-full" autofocus required>
                     </div>
                     <div>
@@ -156,7 +157,7 @@
             @if($ungrouped->count())
             <div class="px-6 divide-y divide-hairline/50 task-drop-zone" data-stage-id="">
                 @foreach ($ungrouped as $task)
-                        <div class="task-row border-b border-hairline/30 py-2 pl-7 group/task" data-task-id="{{ $task->id }}" draggable="true" wire:key="ungrouped-task-{{ $task->id }}">
+                        <div class="task-row border-b border-hairline/30 py-3 pl-11 group/task" data-task-id="{{ $task->id }}" draggable="true" wire:key="ungrouped-task-{{ $task->id }}">
                             <div class="grid grid-cols-[1fr_140px_100px_120px_90px_70px] gap-3 items-center">
                                 <div class="flex items-center gap-2 cursor-pointer" wire:click="selectTask({{ $task->id }})">
                                     <div class="w-2.5 h-2.5 rounded-full bg-gray-500"></div>
@@ -185,49 +186,56 @@
             <div id="sections-container">
             @foreach ($groupedTasks as $key => $group)
             @php $stage = $group['stage']; $stageTasks = $group['tasks']; @endphp
-            <div class="section-block mt-4 px-4" x-data="{ open: true }" data-section-id="{{ $stage->id }}" wire:key="stage-{{ $stage->id }}">
-                <div class="flex items-center gap-1 group/sec mb-1 py-1">
+            <div class="section-block mt-4 mb-2 px-4" x-data="{ open: true }" data-section-id="{{ $stage->id }}" wire:key="stage-{{ $stage->id }}">
+
+
+                <div class="flex items-center gap-2 group/sec mb-3 py-2 border-b border-hairline/30">
                     {{-- Drag grip --}}
                     <div class="section-grip cursor-grab active:cursor-grabbing p-1 text-ink-muted opacity-0 group-hover/sec:opacity-100 transition-opacity shrink-0" title="Geser untuk mengurutkan">
-                        <svg class="w-3.5 h-4" viewBox="0 0 16 20" fill="currentColor"><circle cx="5" cy="4" r="1.5"/><circle cx="11" cy="4" r="1.5"/><circle cx="5" cy="10" r="1.5"/><circle cx="11" cy="10" r="1.5"/><circle cx="5" cy="16" r="1.5"/><circle cx="11" cy="16" r="1.5"/></svg>
+                        <svg class="w-4 h-4" viewBox="0 0 16 20" fill="currentColor"><circle cx="5" cy="4" r="1.5"/><circle cx="11" cy="4" r="1.5"/><circle cx="5" cy="10" r="1.5"/><circle cx="11" cy="10" r="1.5"/><circle cx="5" cy="16" r="1.5"/><circle cx="11" cy="16" r="1.5"/></svg>
                     </div>
-                    <button @click="open = !open" class="flex items-center gap-2 flex-1 text-left">
-                        <svg class="w-3.5 h-3.5 text-ink-subtle transition-transform duration-150" :class="{'rotate-[-90deg]': !open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
-                        <span class="inline-block w-2.5 h-2.5 rounded-sm shrink-0" style="background-color: {{ $stage->color ?? '#6b7280' }}"></span>
-                        <span class="text-[13px] font-semibold text-ink">{{ $stage->name }}</span>
-                        <span class="text-[11px] text-ink-muted ml-1 tabular-nums">{{ $stageTasks->count() }}</span>
+                    <button @click="open = !open" class="flex items-center gap-3 flex-1 text-left">
+                        <svg class="w-4 h-4 text-ink-subtle transition-transform duration-150" :class="{'rotate-[-90deg]': !open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+
+                        <div class="flex items-center gap-2">
+                            <span class="inline-block w-3 h-3 rounded-full shrink-0 shadow-sm" style="background-color: {{ $stage->color ?? '#6b7280' }}"></span>
+                            <h2 class="text-lg font-bold text-ink tracking-tight">{{ $stage->name }}</h2>
+                        </div>
+
+                        <span class="text-[13px] font-medium text-ink-muted ml-2 tabular-nums">{{ $stageTasks->count() }}</span>
                     </button>
                     {{-- Delete section --}}
                     @can('update', $project)
                     <div class="opacity-0 group-hover/sec:opacity-100 transition-opacity">
-                        <button type="button" x-data @click="$dispatch('open-confirm-modal', { id: 'delete-stage-{{ $stage->id }}' })" class="p-1 text-ink-muted hover:text-red-400 rounded transition-colors" title="Hapus bagian">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        <button type="button" x-data @click="$dispatch('open-confirm-modal', { id: 'delete-stage-{{ $stage->id }}' })" class="p-1.5 text-ink-muted hover:text-red-400 rounded transition-colors" title="Hapus bagian">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                         </button>
                         <x-confirm-modal id="delete-stage-{{ $stage->id }}" wireClick="deleteTaskSection({{ $stage->id }})" title="Hapus Bagian" message="Hapus bagian '{{ $stage->name }}'? Tugas akan ditandai belum dikelompokkan." confirmText="Hapus" />
                     </div>
                     @endcan
                 </div>
 
-                <div x-show="open" class="task-drop-zone border-b border-hairline/30 min-h-[8px]" data-stage-id="{{ $stage->id }}">
+                <div x-show="open" class="task-drop-zone min-h-[10px]" data-stage-id="{{ $stage->id }}">
                     @foreach ($stageTasks as $task)
-                        <div class="task-row border-b border-hairline/30 py-2 pl-7 group/task" data-task-id="{{ $task->id }}" draggable="true" wire:key="task-{{ $task->id }}">
+
+                        <div class="task-row border-b border-hairline/30 py-3 pl-22 group/task hover:bg-surface-1/30 transition-colors" data-task-id="{{ $task->id }}" draggable="true" wire:key="task-{{ $task->id }}">
                             <div class="grid grid-cols-[1fr_140px_100px_120px_90px_70px] gap-3 items-center">
-                                <div class="flex items-center gap-2 cursor-pointer" wire:click="selectTask({{ $task->id }})">
+                                <div class="flex items-center gap-3 cursor-pointer" wire:click="selectTask({{ $task->id }})">
                                     <div class="w-2.5 h-2.5 rounded-full" style="background-color: {{ $stage->color ?? '#6b7280' }}"></div>
                                     <span class="text-[13px] font-medium text-ink group-hover/task:text-primary transition-colors">{{ $task->title }}</span>
                                 </div>
                                 <div class="text-[12px] text-ink-subtle truncate">
                                     {{ $task->assignee ? $task->assignee->name : 'Tidak Ditugaskan' }}
                                 </div>
-                                <div class="text-[12px] {{ $task->deadline && $task->deadline->isPast() ? 'text-red-400' : 'text-ink-subtle' }}">
+                                <div class="text-[12px] {{ $task->deadline && $task->deadline->isPast() ? 'text-red-400 font-medium' : 'text-ink-subtle' }}">
                                     {{ $task->deadline ? $task->deadline->format('M j') : '-' }}
                                 </div>
                                 <div>
-                                    <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-surface-3 text-ink-subtle">
+                                    <span class="text-[11px] font-medium px-2.5 py-1 rounded-full bg-surface-3 text-ink-subtle">
                                         {{ ucfirst($task->priority) }}
                                     </span>
                                 </div>
-                                <div class="text-[12px] text-ink-subtle">{{ $stage->name }}</div>
+                                <div class="text-[12px] text-ink-subtle font-medium">{{ $stage->name }}</div>
                                 <div></div>
                             </div>
                         </div>
@@ -236,15 +244,15 @@
                     {{-- Inline Add Task --}}
                     @can('updateTasks', $project)
                     @if($addingTaskGroup !== $stage->key)
-                    <div wire:click="$set('addingTaskGroup', '{{ $stage->key }}')" class="flex items-center gap-3 py-2 pl-7 text-[13px] text-ink-muted hover:text-ink-subtle cursor-pointer transition-colors">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    <div wire:click="$set('addingTaskGroup', '{{ $stage->key }}')" class="flex items-center gap-3 py-3 pl-16 text-[13px] text-ink-muted hover:text-ink-subtle cursor-pointer transition-colors mt-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                         Tambah tugas...
                     </div>
                     @endif
                     @if($addingTaskGroup === $stage->key)
-                    <div class="py-2 pr-6">
+                    <div class="py-2 pr-6 mt-1 border-y border-hairline/30 bg-surface-1/30">
                         <form wire:submit="addTask('{{ $stage->key }}', {{ $stage->id }})" class="grid grid-cols-[1fr_140px_100px_120px_90px_70px] gap-3 items-center m-0">
-                            <div class="pl-7">
+                            <div class="pl-24">
                                 <input type="text" wire:model="newTaskTitle" placeholder="Judul tugas..." class="v-input !py-1 !px-2 text-[13px] w-full" autofocus required>
                             </div>
                             <div>
@@ -286,34 +294,43 @@
             <div class="px-6 mt-8">
                 <div x-show="!addingSection">
                     <button @click="addingSection = true"
-                            class="flex items-center gap-2 text-[13px] text-ink-muted hover:text-ink-subtle transition-colors py-2 px-3 rounded-md hover:bg-surface-1 border border-dashed border-hairline w-full">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                        Tambah Bagian
+                            class="flex items-center gap-2 text-[14px] text-ink-muted hover:text-ink transition-colors py-3 px-4 rounded-lg hover:bg-surface-1 border border-dashed border-hairline w-full shadow-sm hover:shadow-md">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        <span class="font-medium">Tambah Bagian Stage Baru</span>
                     </button>
                 </div>
-                <div x-show="addingSection" style="display:none" class="v-card p-4 mt-2">
-                    <form wire:submit="addSection" class="m-0 space-y-3">
-                        <div class="text-[13px] font-medium text-ink mb-2">Bagian Baru</div>
-                        <div class="flex items-center gap-3">
-                            <div class="flex-1">
+                <div x-show="addingSection" style="display:none" class="v-card p-5 mt-2 shadow-lg border border-hairline">
+                    <form wire:submit="addSection" class="m-0 space-y-4">
+                        <div class="text-[14px] font-bold text-ink mb-1">Bagian Baru</div>
+                        <div class="flex items-start gap-4 flex-col md:flex-row">
+                            <div class="flex-1 w-full">
                                 <label class="v-label">Nama Bagian</label>
-                                <input type="text" wire:model="newSectionName" placeholder="Contoh: Backlog, Review, Blocked..." class="v-input text-[13px]" required>
+                                <input type="text" wire:model="newSectionName" placeholder="Contoh: Backlog, Review, Blocked..." class="v-input text-[13px] w-full mt-1" required>
                             </div>
-                            <div>
-                                <label class="v-label">Warna</label>
-                                <div class="flex items-center gap-2 flex-wrap mt-1">
+                            <div class="w-full md:w-auto">
+                                <label class="v-label">Warna Label</label>
+                                <div class="flex items-center gap-2 flex-wrap mt-2">
                                     @foreach(['#6366f1','#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#6b7280'] as $c)
                                     <label class="cursor-pointer">
                                         <input type="radio" wire:model="newSectionColor" value="{{ $c }}" class="sr-only peer">
-                                        <span class="w-5 h-5 rounded-full block ring-2 ring-transparent peer-checked:ring-white peer-checked:ring-offset-1 peer-checked:ring-offset-canvas transition-all" style="background-color: {{ $c }}"></span>
+                                        <span class="w-6 h-6 rounded-full block ring-2 ring-transparent peer-checked:ring-white peer-checked:ring-offset-2 peer-checked:ring-offset-canvas transition-all" style="background-color: {{ $c }}"></span>
                                     </label>
                                     @endforeach
                                 </div>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2 pt-2 border-t border-hairline">
-                            <button type="submit" class="v-btn-primary text-[13px]">Buat Bagian</button>
-                            <button type="button" @click="addingSection = false" class="v-btn-secondary text-[13px]">Batal</button>
+
+                        {{-- Active Feature Task Category --}}
+                        <div class="pt-3 border-t border-hairline/50 mt-2">
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" wire:model="newSectionIsActive" class="rounded text-primary focus:ring-primary w-4 h-4 border-hairline bg-surface-1">
+                                <span class="text-[13px] text-ink-subtle font-medium">Kategorikan sebagai Task Aktif (Muncul di Halaman Global Monitoring)</span>
+                            </label>
+                        </div>
+
+                        <div class="flex items-center gap-2 pt-4 mt-2">
+                            <button type="submit" class="v-btn-primary px-4 text-[13px]">Buat Bagian</button>
+                            <button type="button" @click="addingSection = false" class="v-btn-secondary px-4 text-[13px]">Batal</button>
                         </div>
                     </form>
                 </div>
