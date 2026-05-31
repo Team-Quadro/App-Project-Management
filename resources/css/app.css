@@ -1,5 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
+@import "flatpickr/dist/flatpickr.min.css";
+@import "flatpickr/dist/themes/dark.css";
 
 @theme {
     --color-brand-50: oklch(0.97 0.015 290);

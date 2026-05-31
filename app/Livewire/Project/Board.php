@@ -30,7 +30,7 @@ class Board extends Component
     public $addingSection = false;
     public $newSectionName = '';
     public $newSectionColor = '#6366f1';
-    public $newSectionIsActive = false; // <-- TAMBAHAN: Properti baru untuk status aktif
+    public $newSectionIsActive = false;
 
     // Sidebar
     public $selectedTaskId = null;
@@ -46,7 +46,7 @@ class Board extends Component
     {
         $this->project = $project;
         $this->authorize('view', $project);
-    }
+    } 
 
     public function title()
     {
@@ -94,10 +94,12 @@ class Board extends Component
             'newTaskTitle' => 'required|string|max:255',
         ]);
 
+        $deadline = $this->newTaskDeadline ? \Carbon\Carbon::parse($this->newTaskDeadline) : null;
+
         $this->project->tasks()->create([
             'title' => $this->newTaskTitle,
             'assigned_to' => $this->newTaskAssignee ?: null,
-            'deadline' => $this->newTaskDeadline ?: null,
+            'deadline' => $deadline,
             'priority' => $this->newTaskPriority ?: 'medium',
             'status' => $stageKey,
             'stage_id' => $stageId,
@@ -114,7 +116,7 @@ class Board extends Component
         $this->validate([
             'newSectionName' => 'required|string|max:255',
             'newSectionColor' => 'required|string',
-            'newSectionIsActive' => 'boolean', // <-- TAMBAHAN: Validasi boolean
+            'newSectionIsActive' => 'boolean',
         ]);
 
         $tenantId = auth()->user()->tenant_id ?? $this->project->tenant_id;
@@ -130,11 +132,10 @@ class Board extends Component
             'name' => $this->newSectionName,
             'key' => \Illuminate\Support\Str::slug($this->newSectionName, '_'),
             'color' => $this->newSectionColor,
-            'is_active' => $this->newSectionIsActive ? true : false, // <-- TAMBAHAN: Simpan ke database
+            'is_active' => $this->newSectionIsActive ? true : false,
             'sort_order' => $maxOrder + 1,
         ]);
 
-        // Reset form inputan termasuk checkbox
         $this->reset(['newSectionName', 'newSectionColor', 'newSectionIsActive']);
         $this->newSectionColor = '#6366f1';
         $this->dispatch('section-added');
@@ -146,7 +147,7 @@ class Board extends Component
         $this->editingTask = $task;
         $this->editingTaskTitle = $task->title;
         $this->editingTaskAssignee = $task->assigned_to;
-        $this->editingTaskDeadline = $task->deadline?->format('Y-m-d');
+        $this->editingTaskDeadline = $task->deadline ? $task->deadline->format('Y-m-d\TH:i') : null;
         $this->editingTaskStatus = $task->status;
         $this->editingTaskPriority = $task->priority;
         $this->editingTaskDescription = $task->description;
@@ -165,10 +166,12 @@ class Board extends Component
         if (!$this->editingTask) return;
         $this->authorize('updateTasks', $this->project);
 
+        $deadline = $this->editingTaskDeadline ? \Carbon\Carbon::parse($this->editingTaskDeadline) : null;
+
         $this->editingTask->update([
             'title' => $this->editingTaskTitle,
             'assigned_to' => $this->editingTaskAssignee ?: null,
-            'deadline' => $this->editingTaskDeadline ?: null,
+            'deadline' => $deadline,
             'status' => $this->editingTaskStatus,
             'priority' => $this->editingTaskPriority,
             'description' => $this->editingTaskDescription,
@@ -231,7 +234,7 @@ class Board extends Component
             } else {
                 $task->update([
                     'stage_id' => null,
-                    'status' => 'todo', // Default fallback status
+                    'status' => 'todo',
                 ]);
             }
         }
@@ -240,7 +243,7 @@ class Board extends Component
     #[\Livewire\Attributes\On('sectionReordered')]
     public function handleSectionReordered($orderedIds)
     {
-        $this->authorize('update', $this->project); // Only PIC/owner can reorder sections
+        $this->authorize('update', $this->project);
 
         foreach ($orderedIds as $index => $stageId) {
             WorkflowStage::withoutGlobalScopes()
@@ -262,5 +265,51 @@ class Board extends Component
         ]);
 
         session()->flash('success', 'Stage proyek berhasil diperbarui.');
+    }
+
+    public function toggleTaskDone($taskId)
+    {
+        $this->authorize('updateTasks', $this->project);
+
+        $task = Task::find($taskId);
+        if (!$task) return;
+
+        $tenantId = auth()->user()->tenant_id ?? $this->project->tenant_id;
+
+        $doneStage = WorkflowStage::withoutGlobalScopes()
+            ->where('tenant_id', $tenantId)
+            ->whereNull('project_id')
+            ->where('key', 'done')
+            ->first();
+
+        if (!$doneStage) return;
+
+        if ($task->stage_id !== $doneStage->id) {
+            $task->update([
+                'previous_stage_id' => $task->stage_id,
+                'stage_id' => $doneStage->id,
+                'status' => 'done'
+            ]);
+        }
+        else {
+            $fallbackStage = WorkflowStage::withoutGlobalScopes()->find($task->previous_stage_id);
+
+            if ($fallbackStage) {
+                $task->update([
+                    'stage_id' => $fallbackStage->id,
+                    'status' => $fallbackStage->key,
+                    'previous_stage_id' => null
+                ]);
+            } else {
+                $todoStage = WorkflowStage::withoutGlobalScopes()
+                    ->where('tenant_id', $tenantId)->whereNull('project_id')->where('key', 'todo')->first();
+
+                $task->update([
+                    'stage_id' => $todoStage?->id,
+                    'status' => $todoStage?->key ?? 'todo',
+                    'previous_stage_id' => null
+                ]);
+            }
+        }
     }
 }
