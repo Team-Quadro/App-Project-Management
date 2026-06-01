@@ -7,6 +7,7 @@ use Livewire\Attributes\Layout;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\WorkflowStage;
+use App\Models\ProjectStage;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 #[Layout('layouts.app')]
@@ -79,10 +80,18 @@ class Board extends Component
             ->orderBy('sort_order')
             ->get();
 
+        ProjectStage::ensureDefaultsForTenant($tenantId);
+
+        $projectStages = ProjectStage::withoutGlobalScopes()
+            ->where('tenant_id', $tenantId)
+            ->orderBy('sort_order')
+            ->get();
+
         return view('livewire.project.board', [
             'tasks' => $tasks,
             'projectUsers' => $projectUsers,
             'workflowStages' => $workflowStages,
+            'projectStages' => $projectStages,
         ]);
     }
 
@@ -256,7 +265,14 @@ class Board extends Component
     {
         $this->authorize('update', $this->project);
 
-        if (!array_key_exists($newStage, Project::STAGES)) {
+        $tenantId = auth()->user()->tenant_id ?? $this->project->tenant_id;
+        $exists = ProjectStage::withoutGlobalScopes()
+            ->where('tenant_id', $tenantId)
+            ->where('key', $newStage)
+            ->exists();
+
+        if (! $exists) {
+            session()->flash('error', 'Stage proyek tidak ditemukan.');
             return;
         }
 

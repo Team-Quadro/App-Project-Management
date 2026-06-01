@@ -48,7 +48,7 @@ class Dashboard extends Component
                     $active = $member->active_tasks;
                     return [
                         'name' => $member->name,
-                        'job_title' => $member->job_title ?? 'Team Member',
+                        'job_title' => $member->companyRole?->name ?? $member->job_title ?? 'Team Member',
                         'company' => $member->tenant?->company_name, // Disiapkan untuk Superadmin
                         'active_tasks' => $active,
                         'completed_tasks' => $member->completed_tasks,

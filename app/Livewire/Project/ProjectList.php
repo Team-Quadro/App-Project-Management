@@ -6,6 +6,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
 use App\Models\Project;
+use App\Models\ProjectStage;
 
 #[Layout('layouts.app')]
 #[\Livewire\Attributes\Title('Projects')]
@@ -40,6 +41,7 @@ class ProjectList extends Component
     public function render()
     {
         $user = auth()->user();
+        $tenantId = $user->isSuperAdmin() ? session('superadmin_tenant_id') : $user->tenant_id;
 
         $projectsQuery = Project::accessibleBy($user)
             ->search($this->search)
@@ -53,8 +55,18 @@ class ProjectList extends Component
 
         $projects = $projectsQuery->paginate(10);
 
+        $projectStages = collect();
+        if ($tenantId) {
+            ProjectStage::ensureDefaultsForTenant($tenantId);
+            $projectStages = ProjectStage::withoutGlobalScopes()
+                ->where('tenant_id', $tenantId)
+                ->orderBy('sort_order')
+                ->get();
+        }
+
         return view('livewire.project.project-list', [
             'projects' => $projects,
+            'projectStages' => $projectStages,
         ]);
     }
 }

@@ -69,6 +69,11 @@
                             <x-heroicon-o-user-group class="w-4 h-4 {{ request()->routeIs('company.users.*') ? 'text-primary' : 'text-ink-tertiary' }}" />
                             Anggota
                         </a>
+                        <a href="{{ route('company.master-data.index') }}" wire:navigate
+                           class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] font-medium transition-colors duration-100 {{ request()->routeIs('company.master-data.*') ? 'bg-surface-2 text-ink' : 'text-ink-subtle hover:bg-surface-2 hover:text-ink' }}">
+                            <x-heroicon-o-adjustments-horizontal class="w-4 h-4 {{ request()->routeIs('company.master-data.*') ? 'text-primary' : 'text-ink-tertiary' }}" />
+                            Master Data
+                        </a>
                     @endif
                 </nav>
 

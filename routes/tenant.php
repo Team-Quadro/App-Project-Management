@@ -8,4 +8,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/tenants/join', [\App\Http\Controllers\TenantJoinRequestController::class, 'store'])->name('tenants.join');
     Route::get('/active-tasks', [\App\Http\Controllers\ActiveTaskController::class, 'index'])->name('tasks.active');
     Route::get('/company/users', \App\Livewire\Company\UserManager::class)->name('company.users.index');
+    Route::get('/company/master-data', \App\Livewire\Company\MasterData::class)->name('company.master-data.index');
 });

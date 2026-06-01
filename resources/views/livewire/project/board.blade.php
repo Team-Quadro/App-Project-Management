@@ -34,14 +34,19 @@
                             <div x-show="open" @click.away="open = false" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
                                  x-transition:leave="transition ease-in duration-75" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
                                  class="absolute left-0 mt-1 w-48 bg-surface-1 border border-hairline rounded-lg shadow-xl z-50 py-1 overflow-hidden" x-cloak>
-                                @foreach (\App\Models\Project::STAGES as $key => $label)
-                                <button type="button" wire:click="updateProjectStage('{{ $key }}')" @click="open = false" class="w-full flex items-center justify-between px-3 py-2 text-[11px] text-left transition-colors duration-100 {{ $project->stage === $key ? 'bg-primary/10 text-primary font-medium' : 'text-ink-subtle hover:bg-surface-2 hover:text-ink' }}">
-                                    {{ $label }}
-                                    @if($project->stage === $key)
+                                @forelse ($projectStages as $stageOption)
+                                <button type="button" wire:click="updateProjectStage('{{ $stageOption->key }}')" @click="open = false" class="w-full flex items-center justify-between px-3 py-2 text-[11px] text-left transition-colors duration-100 {{ $project->stage === $stageOption->key ? 'bg-primary/10 text-primary font-medium' : 'text-ink-subtle hover:bg-surface-2 hover:text-ink' }}">
+                                    <span class="truncate">{{ $stageOption->name }}</span>
+                                    @if(! $stageOption->is_active)
+                                        <span class="text-[10px] text-ink-muted">Nonaktif</span>
+                                    @endif
+                                    @if($project->stage === $stageOption->key)
                                     <svg class="w-3 h-3 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                                     @endif
                                 </button>
-                                @endforeach
+                                @empty
+                                <div class="px-3 py-2 text-[11px] text-ink-muted">Belum ada stage.</div>
+                                @endforelse
                             </div>
                         </div>
                         @else

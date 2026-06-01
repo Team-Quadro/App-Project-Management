@@ -18,7 +18,9 @@
             <div x-data="{ open: false }" class="relative shrink-0">
                 <button @click="open = !open" class="flex items-center justify-between w-48 px-3 py-1.5 rounded-md text-[13px] font-medium border transition-colors duration-100
                     {{ $stage ? 'bg-primary/10 border-primary/30 text-primary' : 'bg-surface-2 border-hairline text-ink-subtle hover:text-ink' }}">
-                    <span class="truncate">{{ $stage ? (\App\Models\Project::STAGES[$stage] ?? ucfirst($stage)) : 'Semua Stage' }}</span>
+                    <span class="truncate">
+                        {{ $stage ? ($projectStages->firstWhere('key', $stage)?->name ?? \App\Models\Project::STAGES[$stage] ?? ucfirst($stage)) : 'Semua Stage' }}
+                    </span>
                     <svg class="w-3 h-3 shrink-0 transition-transform duration-150" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
                 </button>
 
@@ -31,14 +33,19 @@
                         <svg class="w-3 h-3 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                         @endif
                     </button>
-                    @foreach (\App\Models\Project::STAGES as $key => $label)
-                    <button type="button" wire:click="$set('stage', '{{ $key }}')" @click="open = false" class="w-full flex items-center justify-between px-3 py-2 text-[13px] text-left transition-colors duration-100 {{ $stage === $key ? 'bg-primary/10 text-primary font-medium' : 'text-ink-subtle hover:bg-surface-2 hover:text-ink' }}">
-                        {{ $label }}
-                        @if($stage === $key)
+                    @forelse ($projectStages as $stageOption)
+                    <button type="button" wire:click="$set('stage', '{{ $stageOption->key }}')" @click="open = false" class="w-full flex items-center justify-between px-3 py-2 text-[13px] text-left transition-colors duration-100 {{ $stage === $stageOption->key ? 'bg-primary/10 text-primary font-medium' : 'text-ink-subtle hover:bg-surface-2 hover:text-ink' }}">
+                        <span class="truncate">{{ $stageOption->name }}</span>
+                        @if($stageOption->is_active === false)
+                            <span class="text-[10px] text-ink-muted">Nonaktif</span>
+                        @endif
+                        @if($stage === $stageOption->key)
                         <svg class="w-3 h-3 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                         @endif
                     </button>
-                    @endforeach
+                    @empty
+                    <div class="px-3 py-2 text-[12px] text-ink-muted">Belum ada stage.</div>
+                    @endforelse
                 </div>
             </div>
             @if ($search || $stage)

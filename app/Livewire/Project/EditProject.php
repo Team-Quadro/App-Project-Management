@@ -6,8 +6,10 @@ use Livewire\Component;
 use Livewire\Attributes\Layout;
 use App\Models\Project;
 use App\Models\User;
+use App\Models\ProjectStage;
 use App\Services\ProjectService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Validation\Rule;
 
 #[Layout('layouts.app')]
 class EditProject extends Component
@@ -41,11 +43,14 @@ class EditProject extends Component
 
     protected function rules()
     {
+        $tenantId = $this->project->tenant_id;
+        $stageKeys = ProjectStage::keysForTenant($tenantId);
+
         return [
             'title'       => 'required|string|max:255',
             'description' => 'nullable|string',
             'status'      => 'required|in:' . implode(',', Project::STATUSES),
-            'stage'       => 'required|in:' . implode(',', array_keys(Project::STAGES)),
+            'stage'       => ['required', Rule::in($stageKeys)],
             'deadline'    => 'nullable|date',
             'member_ids'  => 'array',
             'member_ids.*' => 'exists:users,id',
@@ -78,6 +83,12 @@ class EditProject extends Component
             ->orderBy('name')
             ->get();
 
-        return view('livewire.project.edit-project', compact('tenantUsers'));
+        ProjectStage::ensureDefaultsForTenant($this->project->tenant_id);
+
+        $projectStages = ProjectStage::where('tenant_id', $this->project->tenant_id)
+            ->orderBy('sort_order')
+            ->get();
+
+        return view('livewire.project.edit-project', compact('tenantUsers', 'projectStages'));
     }
 }

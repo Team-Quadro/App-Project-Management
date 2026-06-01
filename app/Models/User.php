@@ -24,6 +24,7 @@ class User extends Authenticatable
         'password',
         'role',
         'tenant_id',
+        'company_role_id',
         'job_title',
         'is_active',
         'approval_status',
@@ -105,6 +106,11 @@ class User extends Authenticatable
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    public function companyRole(): BelongsTo
+    {
+        return $this->belongsTo(CompanyRole::class, 'company_role_id');
     }
 
     /**

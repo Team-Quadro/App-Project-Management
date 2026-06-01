@@ -46,8 +46,13 @@
                     </div>
                     <div>
                         <label class="v-label">Jabatan</label>
-                        <input type="text" wire:model="job_title" class="v-input text-[13px]" placeholder="Contoh: Developer" />
-                        @error('job_title') <span class="text-xs text-red-500 mt-1">{{ $message }}</span> @enderror
+                        <select wire:model="company_role_id" class="v-select text-[13px]">
+                            <option value="">Pilih jabatan</option>
+                            @foreach ($companyRoles as $role)
+                                <option value="{{ $role->id }}">{{ $role->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('company_role_id') <span class="text-xs text-red-500 mt-1">{{ $message }}</span> @enderror
                     </div>
                 </div>
                 <p class="text-[12px] text-ink-muted">Kata sandi bawaan: <code class="text-ink-subtle bg-surface-3 px-1.5 py-0.5 rounded text-[11px]">password</code></p>
@@ -89,7 +94,7 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-4 py-3 text-[13px] text-ink-subtle">{{ $member->job_title ?: '—' }}</td>
+                            <td class="px-4 py-3 text-[13px] text-ink-subtle">{{ $member->companyRole?->name ?? $member->job_title ?: '—' }}</td>
                             <td class="px-4 py-3">
                                 <span class="text-[11px] font-medium px-2 py-0.5 rounded-full {{ $member->role === 'pic' ? 'bg-primary/15 text-primary' : 'bg-surface-3 text-ink-subtle' }}">
                                     {{ $member->role_label ?? ucfirst($member->role) }}
