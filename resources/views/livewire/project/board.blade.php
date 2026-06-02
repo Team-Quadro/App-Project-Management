@@ -442,7 +442,13 @@
                                 <textarea wire:model="editingTaskDescription" rows="5" class="v-input w-full bg-canvas border-hairline text-[13px] resize-none" placeholder="Tambahkan deskripsi..."></textarea>
                             </div>
                         </div>
-                        <div class="p-5 border-t border-hairline shrink-0 flex gap-2 justify-end">
+                        <div class="p-5 border-t border-hairline shrink-0 flex items-center justify-between gap-2">
+                            @if(auth()->user()->isSuperAdmin() || auth()->user()->isCompanyAdmin())
+                                <div>
+                                    <button type="button" x-data @click="$dispatch('open-confirm-modal', { id: 'delete-task' })" class="v-btn-secondary text-[13px] text-red-400 hover:text-red-300 border-red-500/20 hover:border-red-500/40">Hapus Task</button>
+                                    <x-confirm-modal id="delete-task" wireClick="deleteTask" title="Hapus Task" message="Anda yakin ingin menghapus task ini?" confirmText="Hapus" />
+                                </div>
+                            @endif
                             <button type="submit" class="v-btn-primary text-[13px]">Simpan Perubahan</button>
                         </div>
                     </form>

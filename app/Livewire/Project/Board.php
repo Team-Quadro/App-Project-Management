@@ -200,6 +200,28 @@ class Board extends Component
         session()->flash('success', 'Task updated.');
     }
 
+    public function deleteTask(): void
+    {
+        if (! $this->editingTask) {
+            return;
+        }
+
+        $user = auth()->user();
+
+        if (! $user->isSuperAdmin() && ! $user->isCompanyAdmin()) {
+            abort(403);
+        }
+
+        if ($this->editingTask->project_id !== $this->project->id) {
+            session()->flash('error', 'Task tidak ditemukan.');
+            return;
+        }
+
+        $this->editingTask->delete();
+        $this->closeSidebar();
+        session()->flash('success', 'Task berhasil dihapus.');
+    }
+
     public function deleteTaskSection(WorkflowStage $stage)
     {
         $this->authorize('update', $this->project);

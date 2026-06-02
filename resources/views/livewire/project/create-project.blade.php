@@ -55,7 +55,9 @@
                     </div>
                     <div>
                         <label for="deadline" class="v-label">Tenggat Waktu</label>
-                        <input type="date" id="deadline" wire:model="deadline" class="v-input" />
+                        <div x-data x-init="flatpickr($refs.deadline, { dateFormat: 'Y-m-d', allowInput: true })">
+                            <input type="text" id="deadline" x-ref="deadline" wire:model="deadline" class="v-input" autocomplete="off" placeholder="Pilih tanggal" />
+                        </div>
                     </div>
                 </div>
 
