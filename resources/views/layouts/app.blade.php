@@ -90,11 +90,13 @@
                             <p class="text-[11px] text-ink-subtle truncate">{{ Auth::user()->role_label }}</p>
                         </div>
                     </div>
-                    <div class="flex gap-1 mt-1.5">
-                        <a href="{{ route('profile.edit') }}" wire:navigate class="flex-1 text-center text-[12px] font-medium text-ink-subtle hover:text-primary hover:bg-surface-2 rounded-md py-1 transition-colors duration-100">Profil</a>
-                        <form method="POST" action="{{ route('logout') }}" class="flex-1">
+                    <div class="mt-1.5">
+                        <form method="POST" action="{{ route('logout') }}" class="w-full">
                             @csrf
-                            <button type="submit" class="w-full text-[12px] font-medium text-ink-subtle hover:text-red-400 hover:bg-red-500/10 rounded-md py-1 transition-colors duration-100">Keluar</button>
+                            <button type="submit" class="w-full text-[12px] font-medium text-ink-subtle hover:text-red-400 hover:bg-red-500/10 rounded-md py-1.5 transition-colors duration-100 flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                                Keluar
+                            </button>
                         </form>
                     </div>
                 </div>

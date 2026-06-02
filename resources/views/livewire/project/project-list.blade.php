@@ -13,7 +13,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
                 <input type="text" wire:model.live.debounce.300ms="search" placeholder="Cari proyek..."
-                    class="v-input pl-9 bg-canvas" />
+                    class="v-input !pl-10 bg-canvas" />
             </div>
             <div x-data="{ open: false }" class="relative shrink-0">
                 <button @click="open = !open" class="flex items-center justify-between w-48 px-3 py-1.5 rounded-md text-[13px] font-medium border transition-colors duration-100
@@ -96,7 +96,7 @@
             </div>
             @endif
         </div>
-
+        @if (!Auth::user()->isSuperAdmin())
         @can('create', App\Models\Project::class)
         <a href="{{ route('projects.create') }}" class="v-btn-primary text-[13px] gap-1.5 shrink-0">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -105,6 +105,7 @@
             Proyek Baru
         </a>
         @endcan
+        @endif
     </div>
 
     {{-- Project List --}}

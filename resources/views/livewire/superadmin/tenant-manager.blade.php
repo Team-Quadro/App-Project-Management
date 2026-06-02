@@ -5,7 +5,7 @@
         <div class="flex items-center justify-between">
             <div class="relative">
                 <x-heroicon-o-magnifying-glass class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-subtle" />
-                <input type="text" wire:model.live.debounce.300ms="search" class="v-input !py-1.5 pl-9 text-[13px] w-64" placeholder="Cari perusahaan...">
+                <input type="text" wire:model.live.debounce.300ms="search" class="v-input !py-1.5 !pl-10 text-[13px] w-64" placeholder="Cari perusahaan...">
             </div>
             <button type="button" wire:click="openCreate" class="v-btn-primary text-[12px] gap-1.5"><x-heroicon-o-plus class="w-3.5 h-3.5"/>Tambah</button>
         </div>
