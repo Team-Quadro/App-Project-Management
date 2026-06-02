@@ -26,7 +26,7 @@
             <div class="relative flex-1 min-w-[180px]">
                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-subtle" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 <input type="text" wire:model.live.debounce.300ms="search"
-                    class="v-input !py-1.5 pl-9 bg-surface-1 border-transparent hover:border-hairline focus:border-primary w-full text-[13px] transition-colors"
+                    class="v-input !py-1.5 !pl-10 bg-surface-1 border-transparent hover:border-hairline focus:border-primary w-full text-[13px] transition-colors"
                     placeholder="Cari tugas...">
             </div>
 
@@ -171,7 +171,7 @@
                     <div x-show="open">
                         @foreach ($stageTasks as $task)
                         <div wire:key="task-{{ $task->id }}" wire:click="selectTask({{ $task->id }})"
-                            class="grid grid-cols-[1fr_160px_120px_110px_90px_80px] gap-3 items-center border-b border-hairline/30 py-2.5 pl-3 group/task cursor-pointer hover:bg-surface-1/40 rounded-md transition-colors">
+                            class="grid grid-cols-[1fr_160px_120px_110px_90px_80px] gap-3 items-center border-b border-hairline/30 py-2.5 pl-11 group/task cursor-pointer hover:bg-surface-1/40 rounded-md transition-colors">
                             <div class="flex items-center gap-2">
                                 <div class="w-2 h-2 rounded-full shrink-0" style="background-color: {{ $stage->color ?? '#6b7280' }}"></div>
                                 <span class="text-[13px] font-medium text-ink group-hover/task:text-primary transition-colors truncate">{{ $task->title }}</span>

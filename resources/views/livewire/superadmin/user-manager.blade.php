@@ -5,7 +5,7 @@
         <div class="flex items-center justify-between">
             <div class="relative">
                 <x-heroicon-o-magnifying-glass class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-subtle" />
-                <input type="text" wire:model.live.debounce.300ms="search" class="v-input !py-1.5 pl-9 text-[13px] w-64" placeholder="Cari pengguna...">
+                <input type="text" wire:model.live.debounce.300ms="search" class="v-input !py-1.5 !pl-10 bg-surface-1 border-transparent hover:border-hairline focus:border-primary w-full text-[13px] transition-colors" placeholder="Cari pengguna...">
             </div>
             <button type="button" wire:click="$toggle('showCreate')" class="v-btn-primary text-[12px] gap-1.5"><x-heroicon-o-plus class="w-3.5 h-3.5"/>Tambah Pengguna</button>
         </div>
@@ -56,7 +56,7 @@
                     <td class="py-3 px-4 text-[13px] text-ink-subtle">{{ $user->email }}</td>
                     <td class="py-3 px-4"><span class="text-[11px] font-medium px-2 py-0.5 rounded-full {{ $user->role === 'superadmin' ? 'bg-primary/15 text-primary' : 'bg-surface-3 text-ink-subtle' }}">{{ ucfirst($user->role) }}</span></td>
                     <td class="py-3 px-4 text-[13px] text-ink-subtle">{{ $user->tenant?->company_name ?? '-' }}</td>
-                    
+
                     <td class="py-3 px-4">
                         @if($user->approval_status === 'pending')
                             <span class="text-[11px] text-yellow-500">● Menunggu</span>
@@ -73,7 +73,7 @@
 
                     <td class="py-3 px-4">
                         <div class="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                            
+
                             @if($user->approval_status === 'pending')
                                 <button type="button" wire:click="approveUser({{ $user->id }})" class="p-1.5 text-ink-subtle hover:text-green-400 hover:bg-surface-3 rounded" title="Setujui">
                                     <x-heroicon-o-check class="w-4 h-4" />
