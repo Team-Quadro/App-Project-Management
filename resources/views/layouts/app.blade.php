@@ -29,6 +29,25 @@
                         <x-heroicon-o-squares-2x2 class="w-4 h-4 {{ request()->routeIs('dashboard') ? 'text-primary' : 'text-ink-tertiary' }}" />
                         Dashboard
                     </a>
+                    @if (Auth::user()->isCompanyAdmin())
+                        {{-- TAMBAHAN: Menu Task Active Monitoring --}}
+                        <a href="{{ route('tasks.active') }}" wire:navigate
+                           class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] font-medium transition-colors duration-100 {{ request()->routeIs('tasks.active') ? 'bg-surface-2 text-ink' : 'text-ink-subtle hover:bg-surface-2 hover:text-ink' }}">
+                            <svg class="w-4 h-4 {{ request()->routeIs('tasks.active') ? 'text-primary' : 'text-ink-tertiary' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                            Task Aktif
+                        </a>
+
+                        <a href="{{ route('company.users.index') }}" wire:navigate
+                           class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] font-medium transition-colors duration-100 {{ request()->routeIs('company.users.*') ? 'bg-surface-2 text-ink' : 'text-ink-subtle hover:bg-surface-2 hover:text-ink' }}">
+                            <x-heroicon-o-user-group class="w-4 h-4 {{ request()->routeIs('company.users.*') ? 'text-primary' : 'text-ink-tertiary' }}" />
+                            Anggota
+                        </a>
+                        <a href="{{ route('company.master-data.index') }}" wire:navigate
+                           class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] font-medium transition-colors duration-100 {{ request()->routeIs('company.master-data.*') ? 'bg-surface-2 text-ink' : 'text-ink-subtle hover:bg-surface-2 hover:text-ink' }}">
+                            <x-heroicon-o-adjustments-horizontal class="w-4 h-4 {{ request()->routeIs('company.master-data.*') ? 'text-primary' : 'text-ink-tertiary' }}" />
+                            Master Data
+                        </a>
+                    @endif
                     @if (Auth::user()->isSuperAdmin())
                         <a href="{{ route('superadmin.dashboard') }}" wire:navigate
                            class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] font-medium transition-colors duration-100 {{ request()->routeIs('superadmin.dashboard') ? 'bg-surface-2 text-ink' : 'text-ink-subtle hover:bg-surface-2 hover:text-ink' }}">
@@ -46,35 +65,16 @@
                             Pengguna
                         </a>
                     @endif
-                    @if (!Auth::user()->isSuperAdmin())
-                        <a href="{{ route('my-tasks.index') }}" wire:navigate
-                        class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] font-medium transition-colors duration-100 {{ request()->routeIs('my-tasks.*') ? 'bg-surface-2 text-ink' : 'text-ink-subtle hover:bg-surface-2 hover:text-ink' }}">
-                            <x-heroicon-o-clipboard-document-check class="w-4 h-4 {{ request()->routeIs('my-tasks.*') ? 'text-primary' : 'text-ink-tertiary' }}" />
-                            Tugas Saya
-                        </a>
-                    @endif
                     <a href="{{ route('projects.index') }}" wire:navigate
                        class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] font-medium transition-colors duration-100 {{ request()->routeIs('projects.*') ? 'bg-surface-2 text-ink' : 'text-ink-subtle hover:bg-surface-2 hover:text-ink' }}">
                         <x-heroicon-o-folder class="w-4 h-4 {{ request()->routeIs('projects.*') ? 'text-primary' : 'text-ink-tertiary' }}" />
                         Proyek
                     </a>
-                    @if (Auth::user()->isCompanyAdmin())
-                        {{-- TAMBAHAN: Menu Task Active Monitoring --}}
-                        <a href="{{ route('tasks.active') }}" wire:navigate
-                           class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] font-medium transition-colors duration-100 {{ request()->routeIs('tasks.active') ? 'bg-surface-2 text-ink' : 'text-ink-subtle hover:bg-surface-2 hover:text-ink' }}">
-                            <svg class="w-4 h-4 {{ request()->routeIs('tasks.active') ? 'text-primary' : 'text-ink-tertiary' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                            Task Active
-                        </a>
-
-                        <a href="{{ route('company.users.index') }}" wire:navigate
-                           class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] font-medium transition-colors duration-100 {{ request()->routeIs('company.users.*') ? 'bg-surface-2 text-ink' : 'text-ink-subtle hover:bg-surface-2 hover:text-ink' }}">
-                            <x-heroicon-o-user-group class="w-4 h-4 {{ request()->routeIs('company.users.*') ? 'text-primary' : 'text-ink-tertiary' }}" />
-                            Anggota
-                        </a>
-                        <a href="{{ route('company.master-data.index') }}" wire:navigate
-                           class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] font-medium transition-colors duration-100 {{ request()->routeIs('company.master-data.*') ? 'bg-surface-2 text-ink' : 'text-ink-subtle hover:bg-surface-2 hover:text-ink' }}">
-                            <x-heroicon-o-adjustments-horizontal class="w-4 h-4 {{ request()->routeIs('company.master-data.*') ? 'text-primary' : 'text-ink-tertiary' }}" />
-                            Master Data
+                    @if (!Auth::user()->isSuperAdmin())
+                        <a href="{{ route('my-tasks.index') }}" wire:navigate
+                           class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] font-medium transition-colors duration-100 {{ request()->routeIs('my-tasks.*') ? 'bg-surface-2 text-ink' : 'text-ink-subtle hover:bg-surface-2 hover:text-ink' }}">
+                            <x-heroicon-o-clipboard-document-check class="w-4 h-4 {{ request()->routeIs('my-tasks.*') ? 'text-primary' : 'text-ink-tertiary' }}" />
+                            Tugas Saya
                         </a>
                     @endif
                 </nav>
