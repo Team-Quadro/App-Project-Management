@@ -7,7 +7,7 @@
         </div>
     </x-slot>
 
-    {{-- Asset Flatpickr Lokal (Tanpa CDN) --}}
+    {{-- Asset Flatpickr --}}
     <link rel="stylesheet" href="{{ asset('vendor/flatpickr/flatpickr.min.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/flatpickr/dark.css') }}">
     <script src="{{ asset('vendor/flatpickr/flatpickr.min.js') }}"></script>
@@ -130,7 +130,7 @@
                         </select>
                     </div>
 
-                    {{-- Flatpickr Input (Tambah Tugas Atas) --}}
+                    {{-- Flatpickr Input --}}
                     <div x-data="{ date: @entangle('newTaskDeadline') }"
                          x-init="const fp = flatpickr($refs.input, {
                              enableTime: true,
@@ -404,7 +404,7 @@
                                     Tenggat
                                 </div>
 
-                                {{-- Flatpickr Input (Sidebar Kanan) --}}
+                                {{-- Flatpickr Input (right sidebar) --}}
                                 <div x-data="{ deadline: @entangle('editingTaskDeadline') }"
                                      x-init="const fp = flatpickr($refs.input, {
                                          enableTime: true,
